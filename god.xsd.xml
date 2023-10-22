@@ -1,0 +1,155 @@
+<?xml version="1.0"?>
+<xs:schema
+  xmlns:xs="http://www.w3.org/2001/XMLSchema"
+  targetNamespace="https://www.smaji.org"
+  xmlns="https://www.smaji.org"
+  elementFormDefault="qualified">
+
+<xs:simpleType name="unicode">
+  <xs:annotation>
+    <xs:documentation>
+      unicode code point
+    </xs:documentation>
+  </xs:annotation>
+  <xs:restriction base="xs:string">
+    <xs:pattern value="[a-fA-F\d]+(,[a-fA-F\d]+)?"/>
+  </xs:restriction>
+</xs:simpleType>
+
+<xs:simpleType name="framePosAttrType">
+  <xs:restriction base="xs:integer">
+    <xs:minInclusive value="0"/>
+    <xs:maxInclusive value="127"/>
+  </xs:restriction>
+</xs:simpleType>
+
+<xs:simpleType name="frameSizeAttrType">
+  <xs:restriction base="xs:integer">
+    <xs:minInclusive value="1"/>
+    <xs:maxInclusive value="128"/>
+  </xs:restriction>
+</xs:simpleType>
+
+<xs:attributeGroup name="frameAttrs">
+  <xs:annotation>
+    <xs:documentation>
+      frame attributes common to most elements
+      x: axis
+      y: axis
+      width: width of the element
+      height: height of the element
+    </xs:documentation>
+  </xs:annotation>
+  <xs:attribute name="x" type="framePosAttrType" use="required"/>
+  <xs:attribute name="y" type="framePosAttrType" use="required"/>
+  <xs:attribute name="width" type="frameSizeAttrType" use="required"/>
+  <xs:attribute name="height" type="frameSizeAttrType" use="required"/>
+</xs:attributeGroup>
+
+<xs:complexType name="alias">
+  <xs:attribute name="unicode" type="unicode" use="required"/>
+</xs:complexType>
+
+<xs:complexType name="ref">
+  <xs:attribute name="unicode" type="unicode" use="required"/>
+  <xs:attributeGroup ref="frameAttrs" />
+</xs:complexType>
+
+<xs:complexType name="character">
+  <xs:attribute name="utf8" type="xs:string" use="required"/>
+  <xs:attributeGroup ref="frameAttrs" />
+</xs:complexType>
+
+<xs:simpleType name="stroke_type">
+  <xs:restriction base="xs:string">
+    <xs:enumeration value="a"/>
+    <xs:enumeration value="cj"/>
+    <xs:enumeration value="c"/>
+    <xs:enumeration value="d"/>
+    <xs:enumeration value="du"/>
+    <xs:enumeration value="ed"/>
+    <xs:enumeration value="fpj"/>
+    <xs:enumeration value="fp"/>
+    <xs:enumeration value="ft"/>
+    <xs:enumeration value="haj"/>
+    <xs:enumeration value="ha"/>
+    <xs:enumeration value="hj"/>
+    <xs:enumeration value="hpj"/>
+    <xs:enumeration value="hp"/>
+    <xs:enumeration value="h"/>
+    <xs:enumeration value="hsv"/>
+    <xs:enumeration value="htaj"/>
+    <xs:enumeration value="htcj"/>
+    <xs:enumeration value="htc"/>
+    <xs:enumeration value="hthtj"/>
+    <xs:enumeration value="htht"/>
+    <xs:enumeration value="htj"/>
+    <xs:enumeration value="ht"/>
+    <xs:enumeration value="hvh"/>
+    <xs:enumeration value="hvhv"/>
+    <xs:enumeration value="hvj"/>
+    <xs:enumeration value="hv"/>
+    <xs:enumeration value="hvu"/>
+    <xs:enumeration value="ld"/>
+    <xs:enumeration value="o"/>
+    <xs:enumeration value="pj"/>
+    <xs:enumeration value="p"/>
+    <xs:enumeration value="rsv"/>
+    <xs:enumeration value="sh"/>
+    <xs:enumeration value="sv"/>
+    <xs:enumeration value="td"/>
+    <xs:enumeration value="th"/>
+    <xs:enumeration value="thtaj"/>
+    <xs:enumeration value="thtj"/>
+    <xs:enumeration value="tht"/>
+    <xs:enumeration value="tj"/>
+    <xs:enumeration value="tod"/>
+    <xs:enumeration value="t"/>
+    <xs:enumeration value="tu"/>
+    <xs:enumeration value="ufp"/>
+    <xs:enumeration value="uj"/>
+    <xs:enumeration value="up"/>
+    <xs:enumeration value="u"/>
+    <xs:enumeration value="utj"/>
+    <xs:enumeration value="vaj"/>
+    <xs:enumeration value="va"/>
+    <xs:enumeration value="vcj"/>
+    <xs:enumeration value="vc"/>
+    <xs:enumeration value="vh"/>
+    <xs:enumeration value="vhtj"/>
+    <xs:enumeration value="vht"/>
+    <xs:enumeration value="vhv"/>
+    <xs:enumeration value="vj"/>
+    <xs:enumeration value="v"/>
+    <xs:enumeration value="vu"/>
+    <xs:enumeration value="wd"/>
+    <xs:enumeration value="wtd"/>
+    <xs:enumeration value="wt"/>
+  </xs:restriction>
+</xs:simpleType>
+
+<xs:complexType name="stroke">
+  <xs:attribute name="type" type="stroke_type" use="required"/>
+  <xs:attributeGroup ref="frameAttrs" />
+</xs:complexType>
+
+<xs:complexType name="glyph">
+  <xs:choice maxOccurs="unbounded">
+    <xs:element name="stroke" type="stroke"/>
+    <xs:element name="ref" type="ref"/>
+    <xs:element name="character" type="character"/>
+  </xs:choice>
+  <xs:attribute name="unicode" type="unicode" use="required"/>
+</xs:complexType>
+
+<xs:element name="god">
+  <xs:complexType>
+    <xs:choice>
+      <xs:element name="glyph" type="glyph"/>
+      <xs:element name="alias" type="alias"/>
+    </xs:choice>
+    <xs:attribute name="version" type="xs:string" use="required"/>
+  </xs:complexType>
+</xs:element>
+
+</xs:schema> 

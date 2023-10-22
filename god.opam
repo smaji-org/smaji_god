@@ -1,0 +1,18 @@
+opam-version: "2.0"
+maintainer: "zandoye@gmail.com"
+authors: [ "ZAN DoYe" ]
+homepage: "https://github.com/kandu/dynamic_glyph/"
+bug-reports: "https://github.com/kandu/dynamic_glyph/issues"
+license: "MIT"
+dev-repo: "git+https://https://github.com/kandu/dynamic_glyph"
+build: [
+  ["dune" "build" "-p" name "-j" jobs]
+]
+depends: [
+  "ocaml" {>= "4.08.1"}
+  "dune" {>= "1.6.0"}
+  "glyph_outline"
+]
+synopsis: ""
+description: """
+"""
