@@ -5,6 +5,15 @@
   xmlns="https://www.smaji.org"
   elementFormDefault="qualified">
 
+<xs:simpleType name="transform">
+  <xs:restriction base="xs:string">
+    <xs:enumeration value="none"/>
+    <xs:enumeration value="horizontal_mirror"/>
+    <xs:enumeration value="vertical_mirror"/>
+    <xs:enumeration value="rotate90"/>
+  </xs:restriction>
+</xs:simpleType>
+
 <xs:simpleType name="unicode">
   <xs:annotation>
     <xs:documentation>
@@ -140,6 +149,7 @@
     <xs:element name="character" type="character"/>
   </xs:choice>
   <xs:attribute name="unicode" type="unicode" use="required"/>
+  <xs:attribute name="trannform" type="transform" use="optional"/>
 </xs:complexType>
 
 <xs:element name="god">

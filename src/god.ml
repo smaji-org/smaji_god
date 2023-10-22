@@ -386,6 +386,23 @@ let to_stroke_f stroke= {
   stroke_type= stroke.stroke_type;
 }
 
+type transform=
+  | None
+  | Horizontal_mirror
+  | Vertical_mirror
+  | Rotate90
+let transform_of_string= function
+  | "none"-> None
+  | "horizontal_mirror"-> Horizontal_mirror
+  | "vertical_mirror"-> Vertical_mirror
+  | "rotate90"-> Rotate90
+  | _-> failwith "transform_of_string"
+let transform_to_string= function
+  | None-> "none"
+  | Horizontal_mirror-> "horizontal_mirror"
+  | Vertical_mirror-> "vertical_mirror"
+  | Rotate90-> "rotate90"
+
 module Raw = struct
   type ref= {
     code_point: code_point;
@@ -416,6 +433,7 @@ module Raw = struct
     version_major: int;
     version_minor: int;
     code_point: code_point;
+    transform: transform;
     elements: element list;
   }
 
@@ -514,6 +532,8 @@ module Raw = struct
     let (version_major, version_minor)= attrs |> Ezxmlm.get_attr "version" |> version_of_string in
     let attrs, glyph= Ezxmlm.member_with_attr "glyph" god in
     let code_point= attrs |> Ezxmlm.get_attr "unicode" |> code_point_of_string in
+    let transform= (try attrs |> Ezxmlm.get_attr "transform" with Not_found-> "none")
+      |> transform_of_string in
     let elements= List.filter_map (fun node->
       match node with
       | `El (((_ns,name), attrs), _nodes)->
@@ -529,6 +549,7 @@ module Raw = struct
       version_major;
       version_minor;
       code_point;
+      transform;
       elements;
     }
 end
@@ -541,6 +562,7 @@ and god= {
   version_major: int;
   version_minor: int;
   code_point: code_point;
+  transform: transform;
   elements: element list;
 }
 
@@ -595,6 +617,7 @@ let rec load_file dir code_point=
     version_major= god_raw.version_major;
     version_minor= god_raw.version_minor;
     code_point= god_raw.code_point;
+    transform= god_raw.transform;
     elements;
   }
 
