@@ -386,6 +386,40 @@ let to_stroke_f stroke= {
   stroke_type= stroke.stroke_type;
 }
 
+type transform=
+  | NoTransform
+  | MirrorHorizontal
+  | MirrorVertical
+  | Rotate180
+
+let transform_of_string= function
+  | "" | "none"-> NoTransform
+  | "mirror_horizontal"-> MirrorHorizontal
+  | "mirror_vertical"-> MirrorVertical
+  | "rotate180"-> Rotate180
+  | _-> failwith "transform_of_string"
+let transform_to_string= function
+  | NoTransform-> "none"
+  | MirrorHorizontal-> "mirror_horizontal"
+  | MirrorVertical-> "mirror_vertical"
+  | Rotate180-> "rotate180"
+
+let reduce_transforms l=
+  let[@tail_mod_cons] rec reduce l=
+    match l with
+      | []-> []
+      | [_]-> l
+      | MirrorHorizontal::MirrorHorizontal::tl-> reduce tl
+      | MirrorVertical::MirrorVertical::tl-> reduce tl
+      | Rotate180::Rotate180::tl-> reduce tl
+      | MirrorHorizontal::MirrorVertical::tl->
+        Rotate180::tl |> List.sort compare |> reduce
+      | MirrorVertical::MirrorHorizontal::tl->
+        Rotate180::tl |> List.sort compare |> reduce
+      | hd::tl-> hd :: reduce tl
+  in
+  l |> List.sort compare |> reduce
+
 module Raw = struct
   type ref= {
     code_point: code_point;
@@ -416,6 +450,7 @@ module Raw = struct
     version_major: int;
     version_minor: int;
     code_point: code_point;
+    transform: transform;
     elements: element list;
   }
 
@@ -504,16 +539,15 @@ module Raw = struct
       }
     | _-> failwith "get_character"
 
-
-
   let load_file path=
-    let chan= open_in path in
+    In_channel.with_open_text path @@ fun chan->
     let _dtd, nodes= Ezxmlm.from_channel chan in
-    close_in chan;
     let attrs, god= Ezxmlm.member_with_attr "god" nodes in
     let (version_major, version_minor)= attrs |> Ezxmlm.get_attr "version" |> version_of_string in
     let attrs, glyph= Ezxmlm.member_with_attr "glyph" god in
     let code_point= attrs |> Ezxmlm.get_attr "unicode" |> code_point_of_string in
+    let transform= (try attrs |> Ezxmlm.get_attr "transform" with Not_found-> "none")
+      |> transform_of_string in
     let elements= List.filter_map (fun node->
       match node with
       | `El (((_ns,name), attrs), _nodes)->
@@ -529,6 +563,7 @@ module Raw = struct
       version_major;
       version_minor;
       code_point;
+      transform;
       elements;
     }
 end
@@ -541,6 +576,7 @@ and god= {
   version_major: int;
   version_minor: int;
   code_point: code_point;
+  transform: transform;
   elements: element list;
 }
 
@@ -595,6 +631,7 @@ let rec load_file dir code_point=
     version_major= god_raw.version_major;
     version_minor= god_raw.version_minor;
     code_point= god_raw.code_point;
+    transform= god_raw.transform;
     elements;
   }
 
@@ -603,7 +640,7 @@ let rec god_flatten ?(pos_ratio=pos_ratio_default) god=
     god.elements
     ~f:(fun element->
       match element with
-      | Stroke stroke-> 
+      | Stroke stroke->
         let frame= stroke.frame
           |> frame_to_frame_f
           |> pos_ratio_adjust_f ~pos_ratio
@@ -777,10 +814,10 @@ let load_animates directory= let ( / ) = Filename.concat in [
 
 let svg_of_stroke ~stroke_glyph stroke=
   let svg: Animate.Svg.t= StrokeMap.find stroke.stroke_type stroke_glyph in
-  let x= 
+  let x=
     (float_of_int stroke.frame.width) /.
     svg.viewBox.width
-  and y= 
+  and y=
     (float_of_int stroke.frame.height) /.
     svg.viewBox.height
   and dx= float_of_int stroke.frame.x
@@ -788,14 +825,14 @@ let svg_of_stroke ~stroke_glyph stroke=
   svg
     |> Glyph_outline.Svg.Adjust.scale ~x ~y
     |> Glyph_outline.Svg.Adjust.translate ~dx ~dy
- 
+
 let rect_of_stroke ~stroke_animate stroke=
   let rect:Animate.t= StrokeMap.find stroke.stroke_type stroke_animate in
   let svg= rect.svg in
-  let x= 
+  let x=
     (float_of_int stroke.frame.width) /.
     svg.viewBox.width
-  and y= 
+  and y=
     (float_of_int stroke.frame.height) /.
     svg.viewBox.height
   and dx= float_of_int stroke.frame.x
@@ -803,15 +840,15 @@ let rect_of_stroke ~stroke_animate stroke=
   rect
     |> Animate.Adjust.scale ~x ~y
     |> Animate.Adjust.translate ~dx ~dy
- 
+
 let paths_of_stroke ~stroke_glyph stroke=
   let svg= svg_of_stroke ~stroke_glyph stroke in
   svg.paths
- 
+
 let animations_of_stroke ~stroke_animate stroke=
   let svg= rect_of_stroke ~stroke_animate stroke in
   svg.animations
- 
+
 let outline_of_god ~stroke_glyph god=
   let viewBox= Glyph_outline.Svg.ViewBox.{ min_x= 0.; min_y= 0.; width= 0.; height= 0.; }
   and paths= god
@@ -822,15 +859,114 @@ let outline_of_god ~stroke_glyph god=
   let svg= Glyph_outline.Svg.{ viewBox; paths } in
   Glyph_outline.Svg.Adjust.fit_frame svg
 
+let outline_svg_of_god ~stroke_glyph god=
+  let size= calc_size god in
+  let rec animate_svg_of_god ?(indent=0) god=
+    let indent_str0= String.make indent ' '
+    and indent_str1= String.make (indent+2) ' '
+    and indent_str2= String.make (indent+4) ' ' in
+    let elements= ListLabels.map god.elements
+      ~f:(fun element->
+        match element with
+        | Stroke stroke->
+          let godSvg:Animate.svg= StrokeMap.find stroke.stroke_type stroke_glyph in
+          let dx= float_of_int stroke.frame.x -. godSvg.viewBox.min_x
+          and dy= float_of_int stroke.frame.y -. godSvg.viewBox.min_y
+          and rx= float_of_int stroke.frame.width /. godSvg.viewBox.width
+          and ry= float_of_int stroke.frame.height /. godSvg.viewBox.height in
+          let translate=
+            if dx <> 0. || dy <> 0.
+            then sprintf "translate(%s %s)" (string_of_float dx) (string_of_float dy)
+            else ""
+          in
+          let scale=
+            if rx <> 1. || ry <> 1.
+            then sprintf "scale(%s %s)" (string_of_float rx) (string_of_float ry)
+            else ""
+          in
+          let transform=
+            if translate <> "" || scale <> ""
+            then sprintf {|transform="%s"|} (String.concat " " [translate; scale])
+            else ""
+          in
+          let paths=
+            let paths_svg= godSvg.paths
+              |> List.map (Animate.Svg.Path.to_string_svg ~indent:(indent+6))
+              |> String.concat "\n"
+            in
+            sprintf "%s<path d=\"%s\"\n%s/>" indent_str2 paths_svg indent_str2
+          in
+          sprintf "%s<g %s>\n%s\n%s</g>"
+            indent_str1 transform
+            paths
+            indent_str1
+        | SubGod subgod->
+          let size= calc_size subgod.god in
+          let dx= float_of_int subgod.frame.x
+          and dy= float_of_int subgod.frame.y
+          and rx= float_of_int subgod.frame.width /. size.width
+          and ry= float_of_int subgod.frame.height /. size.height in
+          let translate=
+            sprintf "translate(%s %s)" (string_of_float dx) (string_of_float dy)
+          in
+          let scale=
+            if rx <> 1. || ry <> 1.
+            then sprintf "scale(%s %s)" (string_of_float rx) (string_of_float ry)
+            else ""
+          in
+          let transform=
+            if translate <> "" || scale <> ""
+            then sprintf {|transform="%s"|} (String.concat " " [translate; scale])
+            else ""
+          in
+          let subgod_str= animate_svg_of_god ~indent:(indent+2+2) subgod.god in
+          (sprintf "%s<g %s>\n%s\n%s</g>"
+            indent_str1 transform
+            subgod_str
+            indent_str1)
+          )
+    in
+    let elements_str= String.concat "\n" elements in
+    let transform=
+      let x= sprintf "translate(%s 0)"
+        (string_of_float @@ -. size.width )
+      and y= sprintf "translate(0 %s)"
+        (string_of_float @@ -. size.height)
+      in
+      (match god.transform with
+      | NoTransform-> []
+      | MirrorHorizontal-> ["scale(-1 1)"; x]
+      | MirrorVertical-> ["scale(1 -1)"; y]
+      | Rotate180-> ["scale(-1 -1)"; x; y])
+        |> String.concat " "
+        |> sprintf {|transform="%s"|}
+    in
+    sprintf "%s<g %s>\n%s\n%s</g>"
+      indent_str0
+      transform
+      elements_str
+      indent_str0
+  in
+  match god.version_major, god.version_minor with
+  | (1, 0) ->
+    let asvg= animate_svg_of_god ~indent:2 god in
+    let width= string_of_float size.width
+    and height= string_of_float size.height in
+    sprintf
+      "<svg viewBox=\"0,0 %s,%s\" xmlns=\"http://www.w3.org/2000/svg\">\n%s\n</svg>"
+      width height asvg
+  | _-> failwith (sprintf "animate_svg_of_god %d %d" god.version_major god.version_minor)
+
 let animate_svg_of_god ~stroke_animate god=
   let size= calc_size god in
   let rec animate_svg_of_god ?(id=0) ?(time=0.) ?(indent=0) god=
-    let indent_str0= String.make indent ' ' in
+    let indent_str0= String.make indent ' '
+    and indent_str1= String.make (indent+2) ' ' in
     let (next_id, next_time), elements= ListLabels.fold_left_map god.elements
       ~init:(id,time)
       ~f:(fun (id,time) element->
         match element with
-        | Stroke stroke-> 
+        | Stroke stroke->
           let godAnimate:Animate.t= StrokeMap.find stroke.stroke_type stroke_animate in
           let dx= float_of_int stroke.frame.x -. godAnimate.svg.viewBox.min_x
           and dy= float_of_int stroke.frame.y -. godAnimate.svg.viewBox.min_y
@@ -852,12 +988,12 @@ let animate_svg_of_god ~stroke_animate god=
             else ""
           in
           let godAnimate_str=
-            Animate.to_string ~id ~time ~indent:(indent+2) godAnimate in
+            Animate.to_string ~id ~time ~indent:(indent+4) godAnimate in
           ((id+1, time+.0.5),
           (sprintf "%s<g %s>\n%s\n%s</g>"
-            indent_str0 transform
+            indent_str1 transform
             godAnimate_str
-            indent_str0))
+            indent_str1))
         | SubGod subgod->
           let size= calc_size subgod.god in
           let dx= float_of_int subgod.frame.x
@@ -877,15 +1013,36 @@ let animate_svg_of_god ~stroke_animate god=
             then sprintf {|transform="%s"|} (String.concat " " [translate; scale])
             else ""
           in
-          let (id_next,time_next), subgod_str= animate_svg_of_god ~time ~id ~indent:(indent+2) subgod.god in
+          let (id_next,time_next), subgod_str= animate_svg_of_god ~time ~id ~indent:(indent+4) subgod.god in
           ((id_next, time_next),
           (sprintf "%s<g %s>\n%s\n%s</g>"
-            indent_str0 transform
+            indent_str1 transform
             subgod_str
-            indent_str0))
+            indent_str1))
           )
     in
-    (next_id,next_time), (String.concat "\n" elements)
+    let elements_str= String.concat "\n" elements in
+    let transform=
+      let x= sprintf "translate(%s 0)"
+        (string_of_float @@ -. size.width )
+      and y= sprintf "translate(0 %s)"
+        (string_of_float @@ -. size.height)
+      in
+      (match god.transform with
+      | NoTransform-> []
+      | MirrorHorizontal-> ["scale(-1 1)"; x]
+      | MirrorVertical-> ["scale(1 -1)"; y]
+      | Rotate180-> ["scale(-1 -1)"; x; y])
+        |> String.concat " "
+        |> sprintf {|transform="%s"|}
+    in
+    let content= sprintf "%s<g %s>\n%s\n%s</g>"
+      indent_str0
+      transform
+      elements_str
+      indent_str0
+    in
+    (next_id,next_time), content
   in
   match god.version_major, god.version_minor with
   | (1, 0) ->
