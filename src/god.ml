@@ -387,21 +387,51 @@ let to_stroke_f stroke= {
 }
 
 type transform=
-  | None
-  | Horizontal_mirror
-  | Vertical_mirror
-  | Rotate90
+  | MirrorHorizontal
+  | MirrorVertical
+  | Rotate180
+type transform_r=
+  | N
+  | MH
+  | MV
+  | R180
+  | R180MH
+  | R180MV
+let to_transform_r= function
+  | [MirrorHorizontal]-> MH
+  | [MirrorVertical]-> MV
+  | [Rotate180]-> R180
+  | [MirrorHorizontal; Rotate180]
+  | [Rotate180; MirrorHorizontal]-> R180MH
+  | [MirrorVertical; Rotate180]
+  | [Rotate180; MirrorVertical]-> R180MV
+  | _-> N
+
 let transform_of_string= function
-  | "none"-> None
-  | "horizontal_mirror"-> Horizontal_mirror
-  | "vertical_mirror"-> Vertical_mirror
-  | "rotate90"-> Rotate90
+  | "mirror_horizontal"-> MirrorHorizontal
+  | "mirror_vertical"-> MirrorVertical
+  | "rotate180"-> Rotate180
   | _-> failwith "transform_of_string"
 let transform_to_string= function
-  | None-> "none"
-  | Horizontal_mirror-> "horizontal_mirror"
-  | Vertical_mirror-> "vertical_mirror"
-  | Rotate90-> "rotate90"
+  | MirrorHorizontal-> "mirror_horizontal"
+  | MirrorVertical-> "mirror_vertical"
+  | Rotate180-> "rotate180"
+
+let reduce_transforms l=
+  let[@tail_mod_cons] rec reduce l=
+    match l with
+      | []-> []
+      | [_]-> l
+      | MirrorHorizontal::MirrorHorizontal::tl-> reduce tl
+      | MirrorVertical::MirrorVertical::tl-> reduce tl
+      | Rotate180::Rotate180::tl-> reduce tl
+      | MirrorHorizontal::MirrorVertical::tl->
+        Rotate180::tl |> List.sort compare |> reduce
+      | MirrorVertical::MirrorHorizontal::tl->
+        Rotate180::tl |> List.sort compare |> reduce
+      | hd::tl-> hd :: reduce tl
+  in
+  l |> List.sort compare |> reduce
 
 module Raw = struct
   type ref= {
@@ -525,9 +555,8 @@ module Raw = struct
 
 
   let load_file path=
-    let chan= open_in path in
+    In_channel.with_open_text path @@ fun chan->
     let _dtd, nodes= Ezxmlm.from_channel chan in
-    close_in chan;
     let attrs, god= Ezxmlm.member_with_attr "god" nodes in
     let (version_major, version_minor)= attrs |> Ezxmlm.get_attr "version" |> version_of_string in
     let attrs, glyph= Ezxmlm.member_with_attr "glyph" god in
@@ -621,10 +650,14 @@ let rec load_file dir code_point=
     elements;
   }
 
-let rec god_flatten ?(pos_ratio=pos_ratio_default) god=
+let rec god_flatten ?(pos_ratio=pos_ratio_default) ?(transforms=[]) god=
   let elements= ListLabels.map
     god.elements
     ~f:(fun element->
+      let transforms= god.transform::transforms
+        |> reduce_transforms
+        |> to_transform_r
+      in
       match element with
       | Stroke stroke-> 
         let frame= stroke.frame
