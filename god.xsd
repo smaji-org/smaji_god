@@ -2,6 +2,7 @@
 <xs:schema
   xmlns:xs="http://www.w3.org/2001/XMLSchema"
   targetNamespace="http://cjkv.smaji.org/ns/god"
+  xmlns="http://cjkv.smaji.org/ns/god"
   elementFormDefault="qualified">
 
 <xs:simpleType name="transform">
@@ -69,6 +70,73 @@
 </xs:complexType>
 
 <xs:simpleType name="stroke_type">
+  <xs:annotation>
+    <xs:documentation>
+      h     | Horizontal
+      sh    | Slanted Horizontal
+      u     | Upward horizontal
+      du    | Dot – Upward horizontal
+      v     | Vertical
+      sv    | Slanted Vertical
+      rsv   | Right Slanted Vertical
+      t     | Throw
+      ft    | Flat Throw
+      wt    | Wilted Throw
+      d     | Dot
+      ed    | Extended Dot
+      ld    | Left Dot
+      wd    | Wilted Dot
+      p     | Press
+      up    | Upward horizontal – Press
+      hp    | Horizontal – Press
+      fp    | Flat Press
+      ufp   | Upward horizontal – Flat Press
+      c     | Clockwise curve
+      a     | Anticlockwise curve
+      o     | Oval
+      hj    | Horizontal – J hook
+      uj    | Upward horizontal – J hook
+      ht    | Horizontal – Throw
+      hsv   | Horizontal – Slanted Vertical
+      hv    | Horizontal – Vertical
+      hvj   | Horizontal – Vertical – J hook
+      htj   | Horizontal – Throw – J hook
+      utj   | Upward horizontal – Throw – J hook
+      hvh   | Horizontal – Vertical – Horizontal
+      hvu   | Horizontal – Vertical – Upward horizontal
+      ha    | Horizontal – Anticlockwise curve
+      haj   | Horizontal – Anticlockwise curve – J hook
+      hpj   | Horizontal – Press – J hook
+      htaj  | Horizontal – Throw – Anticlockwise curve – J hook
+      htc   | Horizontal – Throw – Clockwise curve
+      htht  | Horizontal – Throw – Horizontal – Throw
+      htcj  | Horizontal – Throw – Clockwise curve – J hook
+      hvhv  | Horizontal – Vertical – Horizontal – Vertical
+      hthtj | Horizontal – Throw – Horizontal – Throw – J hook
+      vu    | Vertical – Upward horizontal
+      vh    | Vertical – Horizontal
+      va    | Vertical – Anticlockwise curve
+      vaj   | Vertical – Anticlockwise curve – J hook
+      vhv   | Vertical – Horizontal – Vertical
+      vht   | Vertical – Horizontal – Throw
+      vhtj  | Vertical – Horizontal – Throw – J hook
+      vj    | Vertical – J hook
+      vc    | Vertical – Clockwise curve
+      vcj   | Vertical – Clockwise curve – J hook
+      tu    | Throw – Upward horizontal
+      th    | Throw – Horizontal
+      td    | Throw – Dot
+      wtd   | Wilted Throw – Dot
+      tht   | Throw – Horizontal – Throw
+      thtj  | Throw – Horizontal – Throw – J hook
+      tj    | Throw – J hook
+      cj    | Clockwise curve – J hook
+      fpj   | Flat Press – J hook
+      pj    | Press – J hook
+      thtaj | Throw – Horizontal – Throw – Anticlockwise curve – J hook
+      tod   | Throw – Oval – Dot
+    </xs:documentation>
+  </xs:annotation>
   <xs:restriction base="xs:string">
     <xs:enumeration value="a"/>
     <xs:enumeration value="cj"/>
