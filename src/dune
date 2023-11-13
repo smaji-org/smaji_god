@@ -3,6 +3,6 @@
 (library
   (name god)
   (public_name god)
-  (libraries glyph_outline base)
+  (libraries glyph_outline)
   (flags (:standard -safe-string)))
 

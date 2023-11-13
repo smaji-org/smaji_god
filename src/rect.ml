@@ -172,7 +172,7 @@ module Adjust = struct
   let scale ~x ~y animation=
     let position= animation.position in
     let position=
-      ViewBox.{ 
+      ViewBox.{
         min_x= position.min_x *. x;
         min_y= position.min_y *. y;
         width= position.width *. x;

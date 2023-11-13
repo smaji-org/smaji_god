@@ -1,10 +1,10 @@
 opam-version: "2.0"
 maintainer: "zandoye@gmail.com"
 authors: [ "ZAN DoYe" ]
-homepage: "https://github.com/kandu/dynamic_glyph/"
-bug-reports: "https://github.com/kandu/dynamic_glyph/issues"
+homepage: "https://github.com/kandu/god/"
+bug-reports: "https://github.com/kandu/god/issues"
 license: "MIT"
-dev-repo: "git+https://https://github.com/kandu/dynamic_glyph"
+dev-repo: "git+https://https://github.com/kandu/god"
 build: [
   ["dune" "build" "-p" name "-j" jobs]
 ]
