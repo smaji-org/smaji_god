@@ -1,0 +1,19 @@
+opam-version: "2.0"
+maintainer: "zandoye@gmail.com"
+authors: [ "ZAN DoYe" ]
+homepage: "https://github.com/smaji-org/smaji_god/"
+bug-reports: "https://github.com/smaji-org/smaji_god/issues"
+license: "GPLv2"
+dev-repo: "git+https://https://github.com/smaji-org/smaji_god"
+build: [
+  ["dune" "build" "-p" name "-j" jobs]
+]
+depends: [
+  "ocaml" {>= "4.08.1"}
+  "dune" {>= "1.6.0"}
+  "smaji_glyph_outline"
+]
+synopsis: "glyph outline description lang (god) manipulation library"
+description: """
+A library to analyze, reform, compose god
+"""

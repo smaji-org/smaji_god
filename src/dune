@@ -1,8 +1,8 @@
 (include_subdirs unqualified)
 
 (library
-  (name god)
-  (public_name god)
-  (libraries glyph_outline)
+  (name smaji_god)
+  (public_name smaji_god)
+  (libraries smaji_glyph_outline)
   (flags (:standard -safe-string)))
 
