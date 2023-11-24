@@ -19,11 +19,11 @@ type t= {
   animations: Rect.animation list;
 }
 
-let to_string ?(id=0) ?(time=0.) ?(indent=0) ?(index_step=2) (t:t)=
+let to_string ?(id=0) ?(time=0.) ?(indent=0) ?(indent_step=2) (t:t)=
   let open Printf in
   let id= sprintf "clip%d" id in
   let indent_str0= String.make indent ' '
-  and indent_str1= String.make (indent+index_step) ' ' in
+  and indent_str1= String.make (indent+indent_step) ' ' in
   let svg= t.svg in
   let paths= svg.paths
     |> List.map (fun path->
@@ -31,14 +31,14 @@ let to_string ?(id=0) ?(time=0.) ?(indent=0) ?(index_step=2) (t:t)=
         indent_str0
         id
         indent_str1
-        (Path.to_string_svg ~indent:(indent+index_step*2) path)
+        (Path.to_string_svg ~indent:(indent+indent_step*2) path)
         indent_str1
         indent_str0
       )
     |> String.concat "\n"
   in
   let animations= t.animations
-    |> List.map (Rect.string_of_animation_svg ~time ~indent:(indent+index_step))
+    |> List.map (Rect.string_of_animation_svg ~time ~indent:(indent+indent_step))
     |> String.concat "\n"
   in
   let g= sprintf "%s<g clip-path=\"url(#%s)\">\n%s\n%s</g>"
@@ -54,12 +54,6 @@ let to_string ?(id=0) ?(time=0.) ?(indent=0) ?(index_step=2) (t:t)=
 let xml_member name nodes=
   try
     Some (Ezxmlm.member name nodes)
-  with
-    Ezxmlm.Tag_not_found _-> None
-
-let xml_member_with_attr name nodes=
-  try
-    Some (Ezxmlm.member_with_attr name nodes)
   with
     Ezxmlm.Tag_not_found _-> None
 
@@ -97,7 +91,9 @@ let load_file path=
   | None-> None
 
 let load_file_exn path=
-  path |> load_file |> Option.get
+  match load_file path with
+  | Some t-> t
+  | None-> raise Not_found
 
 module Adjust = struct
   let reset_viewBox (t:t)=
@@ -106,11 +102,10 @@ module Adjust = struct
     let dx= -. svg.viewBox.min_x
     and dy= -. svg.viewBox.min_y in
     let viewBox= { svg.viewBox with min_x= 0.; min_y= 0. } in
-    let paths= svg.paths |> List.map (Path.Adjust.position ~dx ~dy) in
+    let paths= svg.paths |> List.map (Path.Adjust.translate ~dx ~dy) in
     let animations= animations |> List.map (Rect.Adjust.position ~dx ~dy) in
     let svg= Svg.{ viewBox; paths } in
     { svg; animations }
-
 
   let fit_frame t=
     let svg= t.svg in
@@ -142,7 +137,7 @@ module Adjust = struct
   let translate ~dx ~dy t=
     let svg= t.svg in
     let animations= t.animations in
-    let paths= List.map (Path.Adjust.position ~dx ~dy) svg.Svg.paths in
+    let paths= List.map (Path.Adjust.translate ~dx ~dy) svg.Svg.paths in
     let animations= List.map (Rect.Adjust.position ~dx ~dy) animations in
     let svg= Svg.{ svg with paths } in
     { svg; animations }

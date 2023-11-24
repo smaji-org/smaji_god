@@ -1,5 +1,5 @@
 (*
- * god.ml
+ * smaji_god.ml
  * -----------
  * Copyright : (c) 2023 - 2023, smaji.org
  * Copyright : (c) 2023 - 2023, ZAN DoYe <zandoye@gmail.com>
@@ -14,16 +14,18 @@ module Animate = Animate
 
 open Printf
 
-let write_all path data=
-  let chan= Out_channel.open_text path in
-  Out_channel.output_string chan data;
-  Out_channel.close chan
-
+(*
 let read_all path=
   let chan= In_channel.open_text path in
   let data= In_channel.input_all chan in
   In_channel.close chan;
   data
+
+let write_all path data=
+  let chan= Out_channel.open_text path in
+  Out_channel.output_string chan data;
+  Out_channel.close chan
+*)
 
 (*
 let prepare ()=
@@ -106,74 +108,75 @@ let pos_ratio_adjust ~pos_ratio frame=
   and height= frame_f.height *. pos_ratio.ratio.ratio_y in
   frame_of_frame_f { x; y; width; height }
 
-type size= { width: float; height: float }
+type size= { width: int; height: int }
+type size_f= { width: float; height: float }
 
 type code_point= int * int
 
-type stroke_type=
-  | S_a
-  | S_cj
-  | S_c
-  | S_d
-  | S_du
-  | S_ed
-  | S_fpj
-  | S_fp
-  | S_ft
-  | S_haj
-  | S_ha
-  | S_hj
-  | S_hpj
-  | S_hp
-  | S_h
-  | S_hsv
-  | S_htaj
-  | S_htcj
-  | S_htc
-  | S_hthtj
-  | S_htht
-  | S_htj
-  | S_ht
-  | S_hvh
-  | S_hvhv
-  | S_hvj
-  | S_hv
-  | S_hvu
-  | S_ld
-  | S_o
-  | S_pj
-  | S_p
-  | S_rsv
-  | S_sh
-  | S_sv
-  | S_td
-  | S_th
-  | S_thtaj
-  | S_thtj
-  | S_tht
-  | S_tj
-  | S_tod
-  | S_t
-  | S_tu
-  | S_ufp
-  | S_uj
-  | S_up
-  | S_u
-  | S_utj
-  | S_vaj
-  | S_va
-  | S_vcj
-  | S_vc
-  | S_vh
-  | S_vhtj
-  | S_vht
-  | S_vhv
-  | S_vj
-  | S_v
-  | S_vu
-  | S_wd
-  | S_wtd
-  | S_wt
+type stroke_type =
+  | S_h     (* Horizontal *)
+  | S_sh    (* Slanted Horizontal *)
+  | S_u     (* Upward horizontal *)
+  | S_du    (* Dot – Upward horizontal *)
+  | S_v     (* Vertical *)
+  | S_sv    (* Slanted Vertical *)
+  | S_rsv   (* Right Slanted Vertical *)
+  | S_t     (* Throw *)
+  | S_ft    (* Flat Throw *)
+  | S_wt    (* Wilted Throw *)
+  | S_d     (* Dot *)
+  | S_ed    (* Extended Dot *)
+  | S_ld    (* Left Dot *)
+  | S_wd    (* Wilted Dot *)
+  | S_p     (* Press *)
+  | S_up    (* Upward horizontal – Press *)
+  | S_hp    (* Horizontal – Press *)
+  | S_fp    (* Flat Press *)
+  | S_ufp   (* Upward horizontal – Flat Press *)
+  | S_c     (* Clockwise curve *)
+  | S_a     (* Anticlockwise curve *)
+  | S_o     (* Oval *)
+  | S_hj    (* Horizontal – J hook *)
+  | S_uj    (* Upward horizontal – J hook *)
+  | S_ht    (* Horizontal – Throw *)
+  | S_hsv   (* Horizontal – Slanted Vertical *)
+  | S_hv    (* Horizontal – Vertical *)
+  | S_hvj   (* Horizontal – Vertical – J hook *)
+  | S_htj   (* Horizontal – Throw – J hook *)
+  | S_utj   (* Upward horizontal – Throw – J hook *)
+  | S_hvh   (* Horizontal – Vertical – Horizontal *)
+  | S_hvu   (* Horizontal – Vertical – Upward horizontal *)
+  | S_ha    (* Horizontal – Anticlockwise curve *)
+  | S_haj   (* Horizontal – Anticlockwise curve – J hook *)
+  | S_hpj   (* Horizontal – Press – J hook *)
+  | S_htaj  (* Horizontal – Throw – Anticlockwise curve – J hook *)
+  | S_htc   (* Horizontal – Throw – Clockwise curve *)
+  | S_htht  (* Horizontal – Throw – Horizontal – Throw *)
+  | S_htcj  (* Horizontal – Throw – Clockwise curve – J hook *)
+  | S_hvhv  (* Horizontal – Vertical – Horizontal – Vertical *)
+  | S_hthtj (* Horizontal – Throw – Horizontal – Throw – J hook *)
+  | S_vu    (* Vertical – Upward horizontal *)
+  | S_vh    (* Vertical – Horizontal *)
+  | S_va    (* Vertical – Anticlockwise curve *)
+  | S_vaj   (* Vertical – Anticlockwise curve – J hook *)
+  | S_vhv   (* Vertical – Horizontal – Vertical *)
+  | S_vht   (* Vertical – Horizontal – Throw *)
+  | S_vhtj  (* Vertical – Horizontal – Throw – J hook *)
+  | S_vj    (* Vertical – J hook *)
+  | S_vc    (* Vertical – Clockwise curve *)
+  | S_vcj   (* Vertical – Clockwise curve – J hook *)
+  | S_tu    (* Throw – Upward horizontal *)
+  | S_th    (* Throw – Horizontal *)
+  | S_td    (* Throw – Dot *)
+  | S_wtd   (* Wilted Throw – Dot *)
+  | S_tht   (* Throw – Horizontal – Throw *)
+  | S_thtj  (* Throw – Horizontal – Throw – J hook *)
+  | S_tj    (* Throw – J hook *)
+  | S_cj    (* Clockwise curve – J hook *)
+  | S_fpj   (* Flat Press – J hook *)
+  | S_pj    (* Press – J hook *)
+  | S_thtaj (* Throw – Horizontal – Throw – Anticlockwise curve – J hook *)
+  | S_tod   (* Throw – Oval – Dot *)
 
 module Stroke = struct
   type t= stroke_type
@@ -417,16 +420,16 @@ let transform_to_string= function
 let reduce_transforms l=
   let[@tail_mod_cons] rec reduce l=
     match l with
-      | []-> []
-      | [_]-> l
-      | MirrorHorizontal::MirrorHorizontal::tl-> reduce tl
-      | MirrorVertical::MirrorVertical::tl-> reduce tl
-      | Rotate180::Rotate180::tl-> reduce tl
-      | MirrorHorizontal::MirrorVertical::tl->
-        Rotate180::tl |> List.sort compare |> reduce
-      | MirrorVertical::MirrorHorizontal::tl->
-        Rotate180::tl |> List.sort compare |> reduce
-      | hd::tl-> hd :: reduce tl
+    | []-> []
+    | [_]-> l
+    | MirrorHorizontal::MirrorHorizontal::tl-> reduce tl
+    | MirrorVertical::MirrorVertical::tl-> reduce tl
+    | Rotate180::Rotate180::tl-> reduce tl
+    | MirrorHorizontal::MirrorVertical::tl->
+      Rotate180::tl |> List.sort compare |> reduce
+    | MirrorVertical::MirrorHorizontal::tl->
+      Rotate180::tl |> List.sort compare |> reduce
+    | hd::tl-> hd :: reduce tl
   in
   l |> List.sort compare |> reduce
 
@@ -590,18 +593,51 @@ and god= {
   elements: element list;
 }
 
-let calc_size god=
-  ListLabels.fold_left god.elements
-    ~init:{width=0.;height=0.}
-    ~f:(fun acc element->
-      let frame=
-        match element with
-        | Stroke stroke-> stroke.frame
-        | SubGod subgod-> subgod.frame
+let god_frame god: frame=
+  let (nx, ny, px, py)=
+    match god.elements with
+    | []-> (0,0,0,0)
+    | head::elements->
+      let init =
+        let frame=
+          match head with
+          | Stroke stroke-> stroke.frame
+          | SubGod subgod-> subgod.frame
+        in
+        (frame.x, frame.y, frame.width, frame.height)
       in
-      { width= max acc.width (float_of_int (frame.x+frame.width));
-        height= max acc.height (float_of_int (frame.y+frame.height));
-      })
+      ListLabels.fold_left elements
+        ~init
+        ~f:(fun (nx, ny, px, py) element->
+          let frame=
+            match element with
+            | Stroke stroke-> stroke.frame
+            | SubGod subgod-> subgod.frame
+          in
+          (
+            min nx frame.x,
+            min ny frame.y,
+            max px (frame.x+frame.width),
+            max py (frame.y+frame.height)
+          ))
+  in
+  let x= nx
+  and y= ny
+  and width= px - nx
+  and height= py - ny in
+  { x; y; width; height }
+
+let calc_size god: size=
+  let frame= god_frame god in
+  let width= frame.width
+  and height= frame.height in
+  { width; height }
+
+let calc_size_f god: size_f=
+  let size= calc_size god in
+  let width= float_of_int size.width
+  and height= float_of_int size.height in
+  { width; height }
 
 let string_of_stroke stroke=
   let stroke_type= string_of_stroke_type stroke.stroke_type
@@ -626,14 +662,14 @@ and string_of_god ?(indent=0) god=
     elements
     indent_str
 
-let rec load_file dir code_point=
+let rec load_file ~dir code_point=
   let code_glyph, code_variation= code_point in
   let glyph_dir= sprintf "%x" code_glyph in
   let variation_dir= sprintf "%x" code_variation in
   let ( / ) = Filename.concat in
   let god_raw= Raw.load_file (dir / glyph_dir / variation_dir / "default.xml") in
   let elements= god_raw.elements |> List.map (function
-    | Raw.Ref ref-> SubGod { god= (load_file dir ref.code_point); frame= ref.frame }
+    | Raw.Ref ref-> SubGod { god= (load_file ~dir ref.code_point); frame= ref.frame }
     | Raw.Stroke s-> Stroke s
     )
   in
@@ -658,7 +694,7 @@ let rec god_flatten ?(pos_ratio=pos_ratio_default) god=
         in
         [ { stroke with frame } ]
       | SubGod subgod->
-        let size= calc_size subgod.god in
+        let size= calc_size_f subgod.god in
         let ratio= {
           ratio_x= float_of_int subgod.frame.width /. size.width;
           ratio_y= float_of_int subgod.frame.height /. size.height;
@@ -686,138 +722,138 @@ let rec god_flatten ?(pos_ratio=pos_ratio_default) god=
 
 module StrokeMap= Map.Make(Stroke)
 
-let load_glyphs directory= let ( / ) = Filename.concat in [
-  (S_a, Smaji_glyph_outline.Svg.load_file_exn @@ directory / "a.svg");
-  (S_cj, Smaji_glyph_outline.Svg.load_file_exn @@ directory / "cj.svg");
-  (S_c, Smaji_glyph_outline.Svg.load_file_exn @@ directory / "c.svg");
-  (S_d, Smaji_glyph_outline.Svg.load_file_exn @@ directory / "d.svg");
-  (S_du, Smaji_glyph_outline.Svg.load_file_exn @@ directory / "du.svg");
-  (S_ed, Smaji_glyph_outline.Svg.load_file_exn @@ directory / "ed.svg");
-  (S_fpj, Smaji_glyph_outline.Svg.load_file_exn @@ directory / "fpj.svg");
-  (S_fp, Smaji_glyph_outline.Svg.load_file_exn @@ directory / "fp.svg");
-  (S_ft, Smaji_glyph_outline.Svg.load_file_exn @@ directory / "ft.svg");
-  (S_haj, Smaji_glyph_outline.Svg.load_file_exn @@ directory / "haj.svg");
-  (S_ha, Smaji_glyph_outline.Svg.load_file_exn @@ directory / "ha.svg");
-  (S_hj, Smaji_glyph_outline.Svg.load_file_exn @@ directory / "hj.svg");
-  (S_hpj, Smaji_glyph_outline.Svg.load_file_exn @@ directory / "hpj.svg");
-  (S_hp, Smaji_glyph_outline.Svg.load_file_exn @@ directory / "hp.svg");
-  (S_h, Smaji_glyph_outline.Svg.load_file_exn @@ directory / "h.svg");
-  (S_hsv, Smaji_glyph_outline.Svg.load_file_exn @@ directory / "hsv.svg");
-  (S_htaj, Smaji_glyph_outline.Svg.load_file_exn @@ directory / "htaj.svg");
-  (S_htcj, Smaji_glyph_outline.Svg.load_file_exn @@ directory / "htcj.svg");
-  (S_htc, Smaji_glyph_outline.Svg.load_file_exn @@ directory / "htc.svg");
-  (S_hthtj, Smaji_glyph_outline.Svg.load_file_exn @@ directory / "hthtj.svg");
-  (S_htht, Smaji_glyph_outline.Svg.load_file_exn @@ directory / "htht.svg");
-  (S_htj, Smaji_glyph_outline.Svg.load_file_exn @@ directory / "htj.svg");
-  (S_ht, Smaji_glyph_outline.Svg.load_file_exn @@ directory / "ht.svg");
-  (S_hvh, Smaji_glyph_outline.Svg.load_file_exn @@ directory / "hvh.svg");
-  (S_hvhv, Smaji_glyph_outline.Svg.load_file_exn @@ directory / "hvhv.svg");
-  (S_hvj, Smaji_glyph_outline.Svg.load_file_exn @@ directory / "hvj.svg");
-  (S_hv, Smaji_glyph_outline.Svg.load_file_exn @@ directory / "hv.svg");
-  (S_hvu, Smaji_glyph_outline.Svg.load_file_exn @@ directory / "hvu.svg");
-  (S_ld, Smaji_glyph_outline.Svg.load_file_exn @@ directory / "ld.svg");
-  (S_o, Smaji_glyph_outline.Svg.load_file_exn @@ directory / "o.svg");
-  (S_pj, Smaji_glyph_outline.Svg.load_file_exn @@ directory / "pj.svg");
-  (S_p, Smaji_glyph_outline.Svg.load_file_exn @@ directory / "p.svg");
-  (S_rsv, Smaji_glyph_outline.Svg.load_file_exn @@ directory / "rsv.svg");
-  (S_sh, Smaji_glyph_outline.Svg.load_file_exn @@ directory / "sh.svg");
-  (S_sv, Smaji_glyph_outline.Svg.load_file_exn @@ directory / "sv.svg");
-  (S_td, Smaji_glyph_outline.Svg.load_file_exn @@ directory / "td.svg");
-  (S_th, Smaji_glyph_outline.Svg.load_file_exn @@ directory / "th.svg");
-  (S_thtaj, Smaji_glyph_outline.Svg.load_file_exn @@ directory / "thtaj.svg");
-  (S_thtj, Smaji_glyph_outline.Svg.load_file_exn @@ directory / "thtj.svg");
-  (S_tht, Smaji_glyph_outline.Svg.load_file_exn @@ directory / "tht.svg");
-  (S_tj, Smaji_glyph_outline.Svg.load_file_exn @@ directory / "tj.svg");
-  (S_tod, Smaji_glyph_outline.Svg.load_file_exn @@ directory / "tod.svg");
-  (S_t, Smaji_glyph_outline.Svg.load_file_exn @@ directory / "t.svg");
-  (S_tu, Smaji_glyph_outline.Svg.load_file_exn @@ directory / "tu.svg");
-  (S_ufp, Smaji_glyph_outline.Svg.load_file_exn @@ directory / "ufp.svg");
-  (S_uj, Smaji_glyph_outline.Svg.load_file_exn @@ directory / "uj.svg");
-  (S_up, Smaji_glyph_outline.Svg.load_file_exn @@ directory / "up.svg");
-  (S_u, Smaji_glyph_outline.Svg.load_file_exn @@ directory / "u.svg");
-  (S_utj, Smaji_glyph_outline.Svg.load_file_exn @@ directory / "utj.svg");
-  (S_vaj, Smaji_glyph_outline.Svg.load_file_exn @@ directory / "vaj.svg");
-  (S_va, Smaji_glyph_outline.Svg.load_file_exn @@ directory / "va.svg");
-  (S_vcj, Smaji_glyph_outline.Svg.load_file_exn @@ directory / "vcj.svg");
-  (S_vc, Smaji_glyph_outline.Svg.load_file_exn @@ directory / "vc.svg");
-  (S_vh, Smaji_glyph_outline.Svg.load_file_exn @@ directory / "vh.svg");
-  (S_vhtj, Smaji_glyph_outline.Svg.load_file_exn @@ directory / "vhtj.svg");
-  (S_vht, Smaji_glyph_outline.Svg.load_file_exn @@ directory / "vht.svg");
-  (S_vhv, Smaji_glyph_outline.Svg.load_file_exn @@ directory / "vhv.svg");
-  (S_vj, Smaji_glyph_outline.Svg.load_file_exn @@ directory / "vj.svg");
-  (S_v, Smaji_glyph_outline.Svg.load_file_exn @@ directory / "v.svg");
-  (S_vu, Smaji_glyph_outline.Svg.load_file_exn @@ directory / "vu.svg");
-  (S_wd, Smaji_glyph_outline.Svg.load_file_exn @@ directory / "wd.svg");
-  (S_wtd, Smaji_glyph_outline.Svg.load_file_exn @@ directory / "wtd.svg");
-  (S_wt, Smaji_glyph_outline.Svg.load_file_exn @@ directory / "wt.svg");
+let load_glyphs ~dir= let ( / ) = Filename.concat in [
+  (S_a, Smaji_glyph_outline.Svg.load_file_exn @@ dir / "a.svg");
+  (S_cj, Smaji_glyph_outline.Svg.load_file_exn @@ dir / "cj.svg");
+  (S_c, Smaji_glyph_outline.Svg.load_file_exn @@ dir / "c.svg");
+  (S_d, Smaji_glyph_outline.Svg.load_file_exn @@ dir / "d.svg");
+  (S_du, Smaji_glyph_outline.Svg.load_file_exn @@ dir / "du.svg");
+  (S_ed, Smaji_glyph_outline.Svg.load_file_exn @@ dir / "ed.svg");
+  (S_fpj, Smaji_glyph_outline.Svg.load_file_exn @@ dir / "fpj.svg");
+  (S_fp, Smaji_glyph_outline.Svg.load_file_exn @@ dir / "fp.svg");
+  (S_ft, Smaji_glyph_outline.Svg.load_file_exn @@ dir / "ft.svg");
+  (S_haj, Smaji_glyph_outline.Svg.load_file_exn @@ dir / "haj.svg");
+  (S_ha, Smaji_glyph_outline.Svg.load_file_exn @@ dir / "ha.svg");
+  (S_hj, Smaji_glyph_outline.Svg.load_file_exn @@ dir / "hj.svg");
+  (S_hpj, Smaji_glyph_outline.Svg.load_file_exn @@ dir / "hpj.svg");
+  (S_hp, Smaji_glyph_outline.Svg.load_file_exn @@ dir / "hp.svg");
+  (S_h, Smaji_glyph_outline.Svg.load_file_exn @@ dir / "h.svg");
+  (S_hsv, Smaji_glyph_outline.Svg.load_file_exn @@ dir / "hsv.svg");
+  (S_htaj, Smaji_glyph_outline.Svg.load_file_exn @@ dir / "htaj.svg");
+  (S_htcj, Smaji_glyph_outline.Svg.load_file_exn @@ dir / "htcj.svg");
+  (S_htc, Smaji_glyph_outline.Svg.load_file_exn @@ dir / "htc.svg");
+  (S_hthtj, Smaji_glyph_outline.Svg.load_file_exn @@ dir / "hthtj.svg");
+  (S_htht, Smaji_glyph_outline.Svg.load_file_exn @@ dir / "htht.svg");
+  (S_htj, Smaji_glyph_outline.Svg.load_file_exn @@ dir / "htj.svg");
+  (S_ht, Smaji_glyph_outline.Svg.load_file_exn @@ dir / "ht.svg");
+  (S_hvh, Smaji_glyph_outline.Svg.load_file_exn @@ dir / "hvh.svg");
+  (S_hvhv, Smaji_glyph_outline.Svg.load_file_exn @@ dir / "hvhv.svg");
+  (S_hvj, Smaji_glyph_outline.Svg.load_file_exn @@ dir / "hvj.svg");
+  (S_hv, Smaji_glyph_outline.Svg.load_file_exn @@ dir / "hv.svg");
+  (S_hvu, Smaji_glyph_outline.Svg.load_file_exn @@ dir / "hvu.svg");
+  (S_ld, Smaji_glyph_outline.Svg.load_file_exn @@ dir / "ld.svg");
+  (S_o, Smaji_glyph_outline.Svg.load_file_exn @@ dir / "o.svg");
+  (S_pj, Smaji_glyph_outline.Svg.load_file_exn @@ dir / "pj.svg");
+  (S_p, Smaji_glyph_outline.Svg.load_file_exn @@ dir / "p.svg");
+  (S_rsv, Smaji_glyph_outline.Svg.load_file_exn @@ dir / "rsv.svg");
+  (S_sh, Smaji_glyph_outline.Svg.load_file_exn @@ dir / "sh.svg");
+  (S_sv, Smaji_glyph_outline.Svg.load_file_exn @@ dir / "sv.svg");
+  (S_td, Smaji_glyph_outline.Svg.load_file_exn @@ dir / "td.svg");
+  (S_th, Smaji_glyph_outline.Svg.load_file_exn @@ dir / "th.svg");
+  (S_thtaj, Smaji_glyph_outline.Svg.load_file_exn @@ dir / "thtaj.svg");
+  (S_thtj, Smaji_glyph_outline.Svg.load_file_exn @@ dir / "thtj.svg");
+  (S_tht, Smaji_glyph_outline.Svg.load_file_exn @@ dir / "tht.svg");
+  (S_tj, Smaji_glyph_outline.Svg.load_file_exn @@ dir / "tj.svg");
+  (S_tod, Smaji_glyph_outline.Svg.load_file_exn @@ dir / "tod.svg");
+  (S_t, Smaji_glyph_outline.Svg.load_file_exn @@ dir / "t.svg");
+  (S_tu, Smaji_glyph_outline.Svg.load_file_exn @@ dir / "tu.svg");
+  (S_ufp, Smaji_glyph_outline.Svg.load_file_exn @@ dir / "ufp.svg");
+  (S_uj, Smaji_glyph_outline.Svg.load_file_exn @@ dir / "uj.svg");
+  (S_up, Smaji_glyph_outline.Svg.load_file_exn @@ dir / "up.svg");
+  (S_u, Smaji_glyph_outline.Svg.load_file_exn @@ dir / "u.svg");
+  (S_utj, Smaji_glyph_outline.Svg.load_file_exn @@ dir / "utj.svg");
+  (S_vaj, Smaji_glyph_outline.Svg.load_file_exn @@ dir / "vaj.svg");
+  (S_va, Smaji_glyph_outline.Svg.load_file_exn @@ dir / "va.svg");
+  (S_vcj, Smaji_glyph_outline.Svg.load_file_exn @@ dir / "vcj.svg");
+  (S_vc, Smaji_glyph_outline.Svg.load_file_exn @@ dir / "vc.svg");
+  (S_vh, Smaji_glyph_outline.Svg.load_file_exn @@ dir / "vh.svg");
+  (S_vhtj, Smaji_glyph_outline.Svg.load_file_exn @@ dir / "vhtj.svg");
+  (S_vht, Smaji_glyph_outline.Svg.load_file_exn @@ dir / "vht.svg");
+  (S_vhv, Smaji_glyph_outline.Svg.load_file_exn @@ dir / "vhv.svg");
+  (S_vj, Smaji_glyph_outline.Svg.load_file_exn @@ dir / "vj.svg");
+  (S_v, Smaji_glyph_outline.Svg.load_file_exn @@ dir / "v.svg");
+  (S_vu, Smaji_glyph_outline.Svg.load_file_exn @@ dir / "vu.svg");
+  (S_wd, Smaji_glyph_outline.Svg.load_file_exn @@ dir / "wd.svg");
+  (S_wtd, Smaji_glyph_outline.Svg.load_file_exn @@ dir / "wtd.svg");
+  (S_wt, Smaji_glyph_outline.Svg.load_file_exn @@ dir / "wt.svg");
   ]
   |> List.to_seq
   |> StrokeMap.of_seq
 
-let load_animates directory= let ( / ) = Filename.concat in [
-  (S_a, Animate.load_file_exn @@ directory / "a.svg");
-  (S_cj, Animate.load_file_exn @@ directory / "cj.svg");
-  (S_c, Animate.load_file_exn @@ directory / "c.svg");
-  (S_d, Animate.load_file_exn @@ directory / "d.svg");
-  (S_du, Animate.load_file_exn @@ directory / "du.svg");
-  (S_ed, Animate.load_file_exn @@ directory / "ed.svg");
-  (S_fpj, Animate.load_file_exn @@ directory / "fpj.svg");
-  (S_fp, Animate.load_file_exn @@ directory / "fp.svg");
-  (S_ft, Animate.load_file_exn @@ directory / "ft.svg");
-  (S_haj, Animate.load_file_exn @@ directory / "haj.svg");
-  (S_ha, Animate.load_file_exn @@ directory / "ha.svg");
-  (S_hj, Animate.load_file_exn @@ directory / "hj.svg");
-  (S_hpj, Animate.load_file_exn @@ directory / "hpj.svg");
-  (S_hp, Animate.load_file_exn @@ directory / "hp.svg");
-  (S_h, Animate.load_file_exn @@ directory / "h.svg");
-  (S_hsv, Animate.load_file_exn @@ directory / "hsv.svg");
-  (S_htaj, Animate.load_file_exn @@ directory / "htaj.svg");
-  (S_htcj, Animate.load_file_exn @@ directory / "htcj.svg");
-  (S_htc, Animate.load_file_exn @@ directory / "htc.svg");
-  (S_hthtj, Animate.load_file_exn @@ directory / "hthtj.svg");
-  (S_htht, Animate.load_file_exn @@ directory / "htht.svg");
-  (S_htj, Animate.load_file_exn @@ directory / "htj.svg");
-  (S_ht, Animate.load_file_exn @@ directory / "ht.svg");
-  (S_hvh, Animate.load_file_exn @@ directory / "hvh.svg");
-  (S_hvhv, Animate.load_file_exn @@ directory / "hvhv.svg");
-  (S_hvj, Animate.load_file_exn @@ directory / "hvj.svg");
-  (S_hv, Animate.load_file_exn @@ directory / "hv.svg");
-  (S_hvu, Animate.load_file_exn @@ directory / "hvu.svg");
-  (S_ld, Animate.load_file_exn @@ directory / "ld.svg");
-  (S_o, Animate.load_file_exn @@ directory / "o.svg");
-  (S_pj, Animate.load_file_exn @@ directory / "pj.svg");
-  (S_p, Animate.load_file_exn @@ directory / "p.svg");
-  (S_rsv, Animate.load_file_exn @@ directory / "rsv.svg");
-  (S_sh, Animate.load_file_exn @@ directory / "sh.svg");
-  (S_sv, Animate.load_file_exn @@ directory / "sv.svg");
-  (S_td, Animate.load_file_exn @@ directory / "td.svg");
-  (S_th, Animate.load_file_exn @@ directory / "th.svg");
-  (S_thtaj, Animate.load_file_exn @@ directory / "thtaj.svg");
-  (S_thtj, Animate.load_file_exn @@ directory / "thtj.svg");
-  (S_tht, Animate.load_file_exn @@ directory / "tht.svg");
-  (S_tj, Animate.load_file_exn @@ directory / "tj.svg");
-  (S_tod, Animate.load_file_exn @@ directory / "tod.svg");
-  (S_t, Animate.load_file_exn @@ directory / "t.svg");
-  (S_tu, Animate.load_file_exn @@ directory / "tu.svg");
-  (S_ufp, Animate.load_file_exn @@ directory / "ufp.svg");
-  (S_uj, Animate.load_file_exn @@ directory / "uj.svg");
-  (S_up, Animate.load_file_exn @@ directory / "up.svg");
-  (S_u, Animate.load_file_exn @@ directory / "u.svg");
-  (S_utj, Animate.load_file_exn @@ directory / "utj.svg");
-  (S_vaj, Animate.load_file_exn @@ directory / "vaj.svg");
-  (S_va, Animate.load_file_exn @@ directory / "va.svg");
-  (S_vcj, Animate.load_file_exn @@ directory / "vcj.svg");
-  (S_vc, Animate.load_file_exn @@ directory / "vc.svg");
-  (S_vh, Animate.load_file_exn @@ directory / "vh.svg");
-  (S_vhtj, Animate.load_file_exn @@ directory / "vhtj.svg");
-  (S_vht, Animate.load_file_exn @@ directory / "vht.svg");
-  (S_vhv, Animate.load_file_exn @@ directory / "vhv.svg");
-  (S_vj, Animate.load_file_exn @@ directory / "vj.svg");
-  (S_v, Animate.load_file_exn @@ directory / "v.svg");
-  (S_vu, Animate.load_file_exn @@ directory / "vu.svg");
-  (S_wd, Animate.load_file_exn @@ directory / "wd.svg");
-  (S_wtd, Animate.load_file_exn @@ directory / "wtd.svg");
-  (S_wt, Animate.load_file_exn @@ directory / "wt.svg");
+let load_animates ~dir= let ( / ) = Filename.concat in [
+  (S_a, Animate.load_file_exn @@ dir / "a.svg");
+  (S_cj, Animate.load_file_exn @@ dir / "cj.svg");
+  (S_c, Animate.load_file_exn @@ dir / "c.svg");
+  (S_d, Animate.load_file_exn @@ dir / "d.svg");
+  (S_du, Animate.load_file_exn @@ dir / "du.svg");
+  (S_ed, Animate.load_file_exn @@ dir / "ed.svg");
+  (S_fpj, Animate.load_file_exn @@ dir / "fpj.svg");
+  (S_fp, Animate.load_file_exn @@ dir / "fp.svg");
+  (S_ft, Animate.load_file_exn @@ dir / "ft.svg");
+  (S_haj, Animate.load_file_exn @@ dir / "haj.svg");
+  (S_ha, Animate.load_file_exn @@ dir / "ha.svg");
+  (S_hj, Animate.load_file_exn @@ dir / "hj.svg");
+  (S_hpj, Animate.load_file_exn @@ dir / "hpj.svg");
+  (S_hp, Animate.load_file_exn @@ dir / "hp.svg");
+  (S_h, Animate.load_file_exn @@ dir / "h.svg");
+  (S_hsv, Animate.load_file_exn @@ dir / "hsv.svg");
+  (S_htaj, Animate.load_file_exn @@ dir / "htaj.svg");
+  (S_htcj, Animate.load_file_exn @@ dir / "htcj.svg");
+  (S_htc, Animate.load_file_exn @@ dir / "htc.svg");
+  (S_hthtj, Animate.load_file_exn @@ dir / "hthtj.svg");
+  (S_htht, Animate.load_file_exn @@ dir / "htht.svg");
+  (S_htj, Animate.load_file_exn @@ dir / "htj.svg");
+  (S_ht, Animate.load_file_exn @@ dir / "ht.svg");
+  (S_hvh, Animate.load_file_exn @@ dir / "hvh.svg");
+  (S_hvhv, Animate.load_file_exn @@ dir / "hvhv.svg");
+  (S_hvj, Animate.load_file_exn @@ dir / "hvj.svg");
+  (S_hv, Animate.load_file_exn @@ dir / "hv.svg");
+  (S_hvu, Animate.load_file_exn @@ dir / "hvu.svg");
+  (S_ld, Animate.load_file_exn @@ dir / "ld.svg");
+  (S_o, Animate.load_file_exn @@ dir / "o.svg");
+  (S_pj, Animate.load_file_exn @@ dir / "pj.svg");
+  (S_p, Animate.load_file_exn @@ dir / "p.svg");
+  (S_rsv, Animate.load_file_exn @@ dir / "rsv.svg");
+  (S_sh, Animate.load_file_exn @@ dir / "sh.svg");
+  (S_sv, Animate.load_file_exn @@ dir / "sv.svg");
+  (S_td, Animate.load_file_exn @@ dir / "td.svg");
+  (S_th, Animate.load_file_exn @@ dir / "th.svg");
+  (S_thtaj, Animate.load_file_exn @@ dir / "thtaj.svg");
+  (S_thtj, Animate.load_file_exn @@ dir / "thtj.svg");
+  (S_tht, Animate.load_file_exn @@ dir / "tht.svg");
+  (S_tj, Animate.load_file_exn @@ dir / "tj.svg");
+  (S_tod, Animate.load_file_exn @@ dir / "tod.svg");
+  (S_t, Animate.load_file_exn @@ dir / "t.svg");
+  (S_tu, Animate.load_file_exn @@ dir / "tu.svg");
+  (S_ufp, Animate.load_file_exn @@ dir / "ufp.svg");
+  (S_uj, Animate.load_file_exn @@ dir / "uj.svg");
+  (S_up, Animate.load_file_exn @@ dir / "up.svg");
+  (S_u, Animate.load_file_exn @@ dir / "u.svg");
+  (S_utj, Animate.load_file_exn @@ dir / "utj.svg");
+  (S_vaj, Animate.load_file_exn @@ dir / "vaj.svg");
+  (S_va, Animate.load_file_exn @@ dir / "va.svg");
+  (S_vcj, Animate.load_file_exn @@ dir / "vcj.svg");
+  (S_vc, Animate.load_file_exn @@ dir / "vc.svg");
+  (S_vh, Animate.load_file_exn @@ dir / "vh.svg");
+  (S_vhtj, Animate.load_file_exn @@ dir / "vhtj.svg");
+  (S_vht, Animate.load_file_exn @@ dir / "vht.svg");
+  (S_vhv, Animate.load_file_exn @@ dir / "vhv.svg");
+  (S_vj, Animate.load_file_exn @@ dir / "vj.svg");
+  (S_v, Animate.load_file_exn @@ dir / "v.svg");
+  (S_vu, Animate.load_file_exn @@ dir / "vu.svg");
+  (S_wd, Animate.load_file_exn @@ dir / "wd.svg");
+  (S_wtd, Animate.load_file_exn @@ dir / "wtd.svg");
+  (S_wt, Animate.load_file_exn @@ dir / "wt.svg");
   ]
   |> List.to_seq
   |> StrokeMap.of_seq
@@ -836,9 +872,14 @@ let svg_of_stroke ~stroke_glyph stroke=
     |> Smaji_glyph_outline.Svg.Adjust.scale ~x ~y
     |> Smaji_glyph_outline.Svg.Adjust.translate ~dx ~dy
 
-let rect_of_stroke ~stroke_animate stroke=
-  let rect:Animate.t= StrokeMap.find stroke.stroke_type stroke_animate in
-  let svg= rect.svg in
+let paths_of_stroke ~stroke_glyph stroke=
+  let svg= svg_of_stroke ~stroke_glyph stroke in
+  svg.paths
+
+let animate_of_stroke ~stroke_animate stroke=
+  let animate:Animate.t=
+    StrokeMap.find stroke.stroke_type stroke_animate in
+  let svg= animate.svg in
   let x=
     (float_of_int stroke.frame.width) /.
     svg.viewBox.width
@@ -847,17 +888,13 @@ let rect_of_stroke ~stroke_animate stroke=
     svg.viewBox.height
   and dx= float_of_int stroke.frame.x
   and dy= float_of_int stroke.frame.y in
-  rect
+  animate
     |> Animate.Adjust.scale ~x ~y
     |> Animate.Adjust.translate ~dx ~dy
 
-let paths_of_stroke ~stroke_glyph stroke=
-  let svg= svg_of_stroke ~stroke_glyph stroke in
-  svg.paths
-
 let animations_of_stroke ~stroke_animate stroke=
-  let svg= rect_of_stroke ~stroke_animate stroke in
-  svg.animations
+  let animate= animate_of_stroke ~stroke_animate stroke in
+  animate.animations
 
 let outline_of_god ~stroke_glyph god=
   let viewBox= Smaji_glyph_outline.Svg.ViewBox.{ min_x= 0.; min_y= 0.; width= 0.; height= 0.; }
@@ -867,7 +904,7 @@ let outline_of_god ~stroke_glyph god=
     |> List.concat
   in
   let svg= Smaji_glyph_outline.Svg.{ viewBox; paths } in
-  Smaji_glyph_outline.Svg.Adjust.fit_frame svg
+  Smaji_glyph_outline.Svg.Adjust.viewBox_fitFrame_reset svg
 
 let outline_svg_of_god ~stroke_glyph god=
   let size= calc_size god in
@@ -914,8 +951,8 @@ let outline_svg_of_god ~stroke_glyph god=
           let size= calc_size subgod.god in
           let dx= float_of_int subgod.frame.x
           and dy= float_of_int subgod.frame.y
-          and rx= float_of_int subgod.frame.width /. size.width
-          and ry= float_of_int subgod.frame.height /. size.height in
+          and rx= float_of_int subgod.frame.width /. float_of_int size.width
+          and ry= float_of_int subgod.frame.height /. float_of_int size.height in
           let translate=
             sprintf "translate(%s %s)" (string_of_float dx) (string_of_float dy)
           in
@@ -938,10 +975,10 @@ let outline_svg_of_god ~stroke_glyph god=
     in
     let elements_str= String.concat "\n" elements in
     let transform=
-      let x= sprintf "translate(%s 0)"
-        (string_of_float @@ -. size.width )
-      and y= sprintf "translate(0 %s)"
-        (string_of_float @@ -. size.height)
+      let x= sprintf "translate(%d 0)"
+        (- size.width )
+      and y= sprintf "translate(0 %d)"
+        (- size.height)
       in
       (match god.transform with
       | NoTransform-> []
@@ -960,11 +997,9 @@ let outline_svg_of_god ~stroke_glyph god=
   match god.version_major, god.version_minor with
   | (1, 0) ->
     let asvg= animate_svg_of_god ~indent:2 god in
-    let width= string_of_float size.width
-    and height= string_of_float size.height in
     sprintf
-      "<svg viewBox=\"0,0 %s,%s\" xmlns=\"http://www.w3.org/2000/svg\">\n%s\n</svg>"
-      width height asvg
+      "<svg viewBox=\"0,0 %d,%d\" xmlns=\"http://www.w3.org/2000/svg\">\n%s\n</svg>"
+      size.width size.height asvg
   | _-> failwith (sprintf "animate_svg_of_god %d %d" god.version_major god.version_minor)
 
 let animate_svg_of_god ~stroke_animate god=
@@ -1008,8 +1043,8 @@ let animate_svg_of_god ~stroke_animate god=
           let size= calc_size subgod.god in
           let dx= float_of_int subgod.frame.x
           and dy= float_of_int subgod.frame.y
-          and rx= float_of_int subgod.frame.width /. size.width
-          and ry= float_of_int subgod.frame.height /. size.height in
+          and rx= float_of_int subgod.frame.width /. float_of_int size.width
+          and ry= float_of_int subgod.frame.height /. float_of_int size.height in
           let translate=
             sprintf "translate(%s %s)" (string_of_float dx) (string_of_float dy)
           in
@@ -1033,10 +1068,10 @@ let animate_svg_of_god ~stroke_animate god=
     in
     let elements_str= String.concat "\n" elements in
     let transform=
-      let x= sprintf "translate(%s 0)"
-        (string_of_float @@ -. size.width )
-      and y= sprintf "translate(0 %s)"
-        (string_of_float @@ -. size.height)
+      let x= sprintf "translate(%d 0)"
+        (- size.width)
+      and y= sprintf "translate(0 %d)"
+        (- size.height)
       in
       (match god.transform with
       | NoTransform-> []
@@ -1057,10 +1092,8 @@ let animate_svg_of_god ~stroke_animate god=
   match god.version_major, god.version_minor with
   | (1, 0) ->
     let _, asvg= animate_svg_of_god ~indent:2 god in
-    let width= string_of_float size.width
-    and height= string_of_float size.height in
     sprintf
-      "<svg viewBox=\"0,0 %s,%s\" xmlns=\"http://www.w3.org/2000/svg\">\n%s\n</svg>"
-      width height asvg
+      "<svg viewBox=\"0,0 %d,%d\" xmlns=\"http://www.w3.org/2000/svg\">\n%s\n</svg>"
+      size.width size.height asvg
   | _-> failwith (sprintf "animate_svg_of_god %d %d" god.version_major god.version_minor)
 

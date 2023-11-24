@@ -1,0 +1,290 @@
+(*
+ * smaji_god.mli
+ * -----------
+ * Copyright : (c) 2023 - 2023, smaji.org
+ * Copyright : (c) 2023 - 2023, ZAN DoYe <zandoye@gmail.com>
+ * Licence   : GPL2
+ *
+ * This file is a part of Smaji_god.
+ *)
+
+module Animate = Animate
+
+(*
+val read_all : string -> string
+val write_all : string -> string -> unit
+*)
+
+type frame = { x : int; y : int; width : int; height : int; }
+(** Frame described in integer *)
+
+type frame_f = { x : float; y : float; width : float; height : float; }
+(** Frame described in float *)
+
+val frame_to_frame_f : frame -> frame_f
+(** Convert from frame to frame_f *)
+
+val frame_of_frame_f : frame_f -> frame
+(** Convert to frame from frame_f *)
+
+val string_of_frame : frame -> string
+(** Return the string representation of frame *)
+
+type pos = { pos_x : float; pos_y : float; }
+(** The type of position *)
+
+type ratio = { ratio_x : float; ratio_y : float; }
+(** The type of ratio *)
+
+type pos_ratio = { pos : pos; ratio : ratio; }
+(** The type of position and ratio *)
+
+val pos_ratio_default : pos_ratio
+(** The default value of pos_ratio, that is, pos (0,0) and ratio (1,1) *)
+
+val pos_ratio_adjust_f : pos_ratio:pos_ratio -> frame_f -> frame_f
+(** Adjust frame_f with the given pos_ratio *)
+
+val pos_ratio_adjust : pos_ratio:pos_ratio -> frame -> frame
+(** Adjust frame with the given pos_ratio *)
+
+type size = { width : int; height : int; }
+type size_f = { width : float; height : float; }
+(** The type of size *)
+
+type code_point = int * int
+(** The type of unicode code point of chinese character *)
+
+type stroke_type =
+  | S_h     (** Horizontal *)
+  | S_sh    (** Slanted Horizontal *)
+  | S_u     (** Upward horizontal *)
+  | S_du    (** Dot – Upward horizontal *)
+  | S_v     (** Vertical *)
+  | S_sv    (** Slanted Vertical *)
+  | S_rsv   (** Right Slanted Vertical *)
+  | S_t     (** Throw *)
+  | S_ft    (** Flat Throw *)
+  | S_wt    (** Wilted Throw *)
+  | S_d     (** Dot *)
+  | S_ed    (** Extended Dot *)
+  | S_ld    (** Left Dot *)
+  | S_wd    (** Wilted Dot *)
+  | S_p     (** Press *)
+  | S_up    (** Upward horizontal – Press *)
+  | S_hp    (** Horizontal – Press *)
+  | S_fp    (** Flat Press *)
+  | S_ufp   (** Upward horizontal – Flat Press *)
+  | S_c     (** Clockwise curve *)
+  | S_a     (** Anticlockwise curve *)
+  | S_o     (** Oval *)
+  | S_hj    (** Horizontal – J hook *)
+  | S_uj    (** Upward horizontal – J hook *)
+  | S_ht    (** Horizontal – Throw *)
+  | S_hsv   (** Horizontal – Slanted Vertical *)
+  | S_hv    (** Horizontal – Vertical *)
+  | S_hvj   (** Horizontal – Vertical – J hook *)
+  | S_htj   (** Horizontal – Throw – J hook *)
+  | S_utj   (** Upward horizontal – Throw – J hook *)
+  | S_hvh   (** Horizontal – Vertical – Horizontal *)
+  | S_hvu   (** Horizontal – Vertical – Upward horizontal *)
+  | S_ha    (** Horizontal – Anticlockwise curve *)
+  | S_haj   (** Horizontal – Anticlockwise curve – J hook *)
+  | S_hpj   (** Horizontal – Press – J hook *)
+  | S_htaj  (** Horizontal – Throw – Anticlockwise curve – J hook *)
+  | S_htc   (** Horizontal – Throw – Clockwise curve *)
+  | S_htht  (** Horizontal – Throw – Horizontal – Throw *)
+  | S_htcj  (** Horizontal – Throw – Clockwise curve – J hook *)
+  | S_hvhv  (** Horizontal – Vertical – Horizontal – Vertical *)
+  | S_hthtj (** Horizontal – Throw – Horizontal – Throw – J hook *)
+  | S_vu    (** Vertical – Upward horizontal *)
+  | S_vh    (** Vertical – Horizontal *)
+  | S_va    (** Vertical – Anticlockwise curve *)
+  | S_vaj   (** Vertical – Anticlockwise curve – J hook *)
+  | S_vhv   (** Vertical – Horizontal – Vertical *)
+  | S_vht   (** Vertical – Horizontal – Throw *)
+  | S_vhtj  (** Vertical – Horizontal – Throw – J hook *)
+  | S_vj    (** Vertical – J hook *)
+  | S_vc    (** Vertical – Clockwise curve *)
+  | S_vcj   (** Vertical – Clockwise curve – J hook *)
+  | S_tu    (** Throw – Upward horizontal *)
+  | S_th    (** Throw – Horizontal *)
+  | S_td    (** Throw – Dot *)
+  | S_wtd   (** Wilted Throw – Dot *)
+  | S_tht   (** Throw – Horizontal – Throw *)
+  | S_thtj  (** Throw – Horizontal – Throw – J hook *)
+  | S_tj    (** Throw – J hook *)
+  | S_cj    (** Clockwise curve – J hook *)
+  | S_fpj   (** Flat Press – J hook *)
+  | S_pj    (** Press – J hook *)
+  | S_thtaj (** Throw – Horizontal – Throw – Anticlockwise curve – J hook *)
+  | S_tod   (** Throw – Oval – Dot *)
+
+val stroke_type_of_string : string -> stroke_type
+(** Return the storke type from its string representation *)
+
+val string_of_stroke_type : stroke_type -> string
+(** Return the string representation of the storke type*)
+
+val code_point_of_string : string -> int * int
+(** Return the code point from its string representation *)
+
+val string_of_code_point : int * int -> string
+(** Return the string representation of the code point *)
+
+val code_point_of_utf8 : string -> int * int
+(** Return the code of from the utf8 encoded character  *)
+
+val version_of_string : string -> int * int
+(** Return the god version from its string representation *)
+
+type stroke_f = { frame_f : frame_f; stroke_type : stroke_type; }
+(** The type of stroke included in frame_f *)
+
+type stroke = { frame : frame; stroke_type : stroke_type; }
+(** The type of stroke included in frame *)
+
+val to_stroke_f : stroke -> stroke_f
+(** Return the stroke_f version of the storke *)
+
+(* The type of transform *)
+type transform =
+  | NoTransform
+  | MirrorHorizontal
+  | MirrorVertical
+  | Rotate180
+
+val transform_of_string : string -> transform
+(** Return the transform from its string representation *)
+
+val transform_to_string : transform -> string
+(** Return the transform from its string representation *)
+
+val reduce_transforms : transform list -> transform list
+(** Return the reduced list from the transform list, remove all unnecessary transforms *)
+
+(** The type of element in god. A god can consists of strokes and/or sub gods. *)
+type element = Stroke of stroke | SubGod of subgod
+
+(** The type of subgod. *)
+and subgod = {
+  god : god; (** subgod *)
+  frame : frame; (** and its frame *)
+}
+
+(** The type of god. *)
+and god = {
+  version_major : int; (** major version *)
+  version_minor : int; (** minor version *)
+  code_point : code_point; (** unicode code point *)
+  transform : transform; (** applied transform *)
+  elements : element list; (** consists of the elements *)
+}
+
+val god_frame : god -> frame
+(** Calculate the frame of the god. *)
+
+val calc_size : god -> size
+(** Calculate the frame size of the god in integer. *)
+
+val calc_size_f : god -> size_f
+(** Calculate the frame size of the god in float. *)
+
+val string_of_stroke : stroke -> string
+(** Return the string representation of the stroke *)
+
+val string_of_element : ?indent:int -> element -> string
+(** Return the string representation of the element *)
+
+val string_of_god : ?indent:int -> god -> string
+(** Return the string representation of the god *)
+
+val load_file : dir:string -> code_point -> god
+(** [load_file ~dir (core,variation)] loads dir/core/variation/default.xml then parses and returns a god. Because a god can reference other god as element, so the file hierarchy in [dir] is structured. *)
+
+val god_flatten : ?pos_ratio:pos_ratio -> god -> stroke list
+(** [god_flatten ?pos_ratio god] flattens the structured into a list of storkes, transformed by pos_ratio *)
+
+(** Module Map with storke_type as type key *)
+module StrokeMap :
+  sig
+    type key = stroke_type
+    type 'a t
+    val empty : 'a t
+    val is_empty : 'a t -> bool
+    val mem : key -> 'a t -> bool
+    val add : key -> 'a -> 'a t -> 'a t
+    val update : key -> ('a option -> 'a option) -> 'a t -> 'a t
+    val singleton : key -> 'a -> 'a t
+    val remove : key -> 'a t -> 'a t
+    val merge :
+      (key -> 'a option -> 'b option -> 'c option) -> 'a t -> 'b t -> 'c t
+    val union : (key -> 'a -> 'a -> 'a option) -> 'a t -> 'a t -> 'a t
+    val compare : ('a -> 'a -> int) -> 'a t -> 'a t -> int
+    val equal : ('a -> 'a -> bool) -> 'a t -> 'a t -> bool
+    val iter : (key -> 'a -> unit) -> 'a t -> unit
+    val fold : (key -> 'a -> 'b -> 'b) -> 'a t -> 'b -> 'b
+    val for_all : (key -> 'a -> bool) -> 'a t -> bool
+    val exists : (key -> 'a -> bool) -> 'a t -> bool
+    val filter : (key -> 'a -> bool) -> 'a t -> 'a t
+    val filter_map : (key -> 'a -> 'b option) -> 'a t -> 'b t
+    val partition : (key -> 'a -> bool) -> 'a t -> 'a t * 'a t
+    val cardinal : 'a t -> int
+    val bindings : 'a t -> (key * 'a) list
+    val min_binding : 'a t -> key * 'a
+    val min_binding_opt : 'a t -> (key * 'a) option
+    val max_binding : 'a t -> key * 'a
+    val max_binding_opt : 'a t -> (key * 'a) option
+    val choose : 'a t -> key * 'a
+    val choose_opt : 'a t -> (key * 'a) option
+    val split : key -> 'a t -> 'a t * 'a option * 'a t
+    val find : key -> 'a t -> 'a
+    val find_opt : key -> 'a t -> 'a option
+    val find_first : (key -> bool) -> 'a t -> key * 'a
+    val find_first_opt : (key -> bool) -> 'a t -> (key * 'a) option
+    val find_last : (key -> bool) -> 'a t -> key * 'a
+    val find_last_opt : (key -> bool) -> 'a t -> (key * 'a) option
+    val map : ('a -> 'b) -> 'a t -> 'b t
+    val mapi : (key -> 'a -> 'b) -> 'a t -> 'b t
+    val to_seq : 'a t -> (key * 'a) Seq.t
+    val to_rev_seq : 'a t -> (key * 'a) Seq.t
+    val to_seq_from : key -> 'a t -> (key * 'a) Seq.t
+    val add_seq : (key * 'a) Seq.t -> 'a t -> 'a t
+    val of_seq : (key * 'a) Seq.t -> 'a t
+  end
+
+val load_glyphs : dir:string -> Animate.svg StrokeMap.t
+(** [load_glyphs ~dir] loads basic stroke glyphs from [dir], and returns [Smaji_glyph_outline.Svg StrokeMap.t] *)
+
+val load_animates : dir:string -> Animate.t StrokeMap.t
+(** [load_animates ~dir] loads basic stroke gnimations from [dir], and returns [Animate.t StrokeMap.t] *)
+
+(** Return the svg part of the stroke *)
+val svg_of_stroke :
+  stroke_glyph:Animate.Svg.t StrokeMap.t -> stroke -> Animate.svg
+
+(** Return the paths of the svg part of the stroke *)
+val paths_of_stroke :
+  stroke_glyph:Animate.Svg.t StrokeMap.t ->
+  stroke -> Animate.Path.t list
+
+(** Return the animate part of the stroke *)
+val animate_of_stroke :
+  stroke_animate:Animate.t StrokeMap.t -> stroke -> Animate.t
+
+(** Return the animation masks of the stroke *)
+val animations_of_stroke :
+  stroke_animate:Animate.t StrokeMap.t -> stroke -> Rect.animation list
+
+(** Return the outline of the god *)
+val outline_of_god :
+  stroke_glyph:Animate.Svg.t StrokeMap.t -> god -> Animate.svg
+
+(** Return the svg-formatted outline of the god *)
+val outline_svg_of_god :
+  stroke_glyph:Animate.svg StrokeMap.t -> god -> string
+
+(** Return the svg-formatted animation of the god *)
+val animate_svg_of_god :
+  stroke_animate:Animate.t StrokeMap.t -> god -> string
+
