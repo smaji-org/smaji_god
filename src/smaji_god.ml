@@ -11,6 +11,8 @@
 open Smaji_glyph_outline.Utils
 
 module Animate = Animate
+module Svg= Smaji_glyph_outline.Svg
+module Glif= Smaji_glyph_outline.Glif
 
 open Printf
 
@@ -56,7 +58,7 @@ type frame_f= {
   height: float;
 }
 
-let frame_to_frame_f (frame:frame)= {
+let frame_f_of_frame (frame:frame)= {
   x= float_of_int frame.x;
   y= float_of_int frame.y;
   width= float_of_int frame.width;
@@ -101,7 +103,7 @@ let pos_ratio_adjust_f ~pos_ratio frame_f=
   { x; y; width; height }
 
 let pos_ratio_adjust ~pos_ratio frame=
-  let frame_f= frame_to_frame_f frame in
+  let frame_f= frame_f_of_frame frame in
   let x= frame_f.x *. pos_ratio.ratio.ratio_x +. pos_ratio.pos.pos_x
   and y= frame_f.y *. pos_ratio.ratio.ratio_y +. pos_ratio.pos.pos_y
   and width= frame_f.width *. pos_ratio.ratio.ratio_x
@@ -395,7 +397,7 @@ type stroke= {
 }
 
 let to_stroke_f stroke= {
-  frame_f= frame_to_frame_f stroke.frame;
+  frame_f= frame_f_of_frame stroke.frame;
   stroke_type= stroke.stroke_type;
 }
 
@@ -411,7 +413,7 @@ let transform_of_string= function
   | "mirror_vertical"-> MirrorVertical
   | "rotate180"-> Rotate180
   | _-> failwith "transform_of_string"
-let transform_to_string= function
+let string_of_transform= function
   | NoTransform-> "none"
   | MirrorHorizontal-> "mirror_horizontal"
   | MirrorVertical-> "mirror_vertical"
@@ -581,17 +583,17 @@ module Raw = struct
     }
 end
 
-type subgod= { god: god ; frame: frame }
-and element=
-  | Stroke of stroke
-  | SubGod of subgod
-and god= {
+type god= {
   version_major: int;
   version_minor: int;
   code_point: code_point;
   transform: transform;
   elements: element list;
 }
+and subgod= { god: god ; frame: frame }
+and element=
+  | Stroke of stroke
+  | SubGod of subgod
 
 let god_frame god: frame=
   let (nx, ny, px, py)=
@@ -625,6 +627,13 @@ let god_frame god: frame=
   and y= ny
   and width= px - nx
   and height= py - ny in
+  let width, height=
+    match god.transform with
+    | NoTransform
+    | MirrorHorizontal
+    | MirrorVertical
+    | Rotate180-> width, height
+  in
   { x; y; width; height }
 
 let calc_size god: size=
@@ -644,15 +653,7 @@ let string_of_stroke stroke=
   and frame= string_of_frame stroke.frame in
   sprintf "{ %s; %s }" stroke_type frame
 
-let rec string_of_element ?(indent=0) elem=
-  let indent_str= String.make indent ' ' in
-  match elem with
-  | Stroke stroke-> indent_str ^ (string_of_stroke stroke)
-  | SubGod god->
-    let god= string_of_god ~indent:(indent+2) god.god
-    and frame= string_of_frame god.frame in
-    sprintf "%s{ frame: %s; god:\n%s\n%s}" indent_str frame god indent_str
-and string_of_god ?(indent=0) god=
+let rec string_of_god ?(indent=0) god=
   let indent_str= String.make indent ' ' in
   let elements= List.map (string_of_element ~indent:(indent+2)) god.elements |> String.concat "\n" in
   sprintf "%s{ version: %d.%d; unicode: %s; elements:\n%s\n%s}"
@@ -661,13 +662,21 @@ and string_of_god ?(indent=0) god=
     (string_of_code_point god.code_point)
     elements
     indent_str
+and string_of_element ?(indent=0) elem=
+  let indent_str= String.make indent ' ' in
+  match elem with
+  | Stroke stroke-> indent_str ^ (string_of_stroke stroke)
+  | SubGod god->
+    let god= string_of_god ~indent:(indent+2) god.god
+    and frame= string_of_frame god.frame in
+    sprintf "%s{ frame: %s; god:\n%s\n%s}" indent_str frame god indent_str
 
-let rec load_file ~dir code_point=
+let rec load_file ~dir ?(filename="default.xml") code_point=
   let code_glyph, code_variation= code_point in
   let glyph_dir= sprintf "%x" code_glyph in
   let variation_dir= sprintf "%x" code_variation in
   let ( / ) = Filename.concat in
-  let god_raw= Raw.load_file (dir / glyph_dir / variation_dir / "default.xml") in
+  let god_raw= Raw.load_file (dir / glyph_dir / variation_dir / filename) in
   let elements= god_raw.elements |> List.map (function
     | Raw.Ref ref-> SubGod { god= (load_file ~dir ref.code_point); frame= ref.frame }
     | Raw.Stroke s-> Stroke s
@@ -688,7 +697,7 @@ let rec god_flatten ?(pos_ratio=pos_ratio_default) god=
       match element with
       | Stroke stroke->
         let frame= stroke.frame
-          |> frame_to_frame_f
+          |> frame_f_of_frame
           |> pos_ratio_adjust_f ~pos_ratio
           |> frame_of_frame_f
         in
@@ -858,8 +867,11 @@ let load_animates ~dir= let ( / ) = Filename.concat in [
   |> List.to_seq
   |> StrokeMap.of_seq
 
+let convert_to_glif_glyphs glyphs=
+  glyphs |> StrokeMap.map Smaji_glyph_outline.glif_of_svg
+
 let svg_of_stroke ~stroke_glyph stroke=
-  let svg: Animate.Svg.t= StrokeMap.find stroke.stroke_type stroke_glyph in
+  let svg: Svg.t= StrokeMap.find stroke.stroke_type stroke_glyph in
   let x=
     (float_of_int stroke.frame.width) /.
     svg.viewBox.width
@@ -896,7 +908,7 @@ let animations_of_stroke ~stroke_animate stroke=
   let animate= animate_of_stroke ~stroke_animate stroke in
   animate.animations
 
-let outline_of_god ~stroke_glyph god=
+let svg_of_god ~stroke_glyph god=
   let viewBox= Smaji_glyph_outline.Svg.ViewBox.{ min_x= 0.; min_y= 0.; width= 0.; height= 0.; }
   and paths= god
     |> god_flatten
@@ -908,7 +920,7 @@ let outline_of_god ~stroke_glyph god=
 
 let outline_svg_of_god ~stroke_glyph god=
   let size= calc_size god in
-  let rec animate_svg_of_god ?(indent=0) god=
+  let rec svg_of_god ?(indent=0) god=
     let indent_str0= String.make indent ' '
     and indent_str1= String.make (indent+2) ' '
     and indent_str2= String.make (indent+4) ' ' in
@@ -916,7 +928,7 @@ let outline_svg_of_god ~stroke_glyph god=
       ~f:(fun element->
         match element with
         | Stroke stroke->
-          let godSvg:Animate.svg= StrokeMap.find stroke.stroke_type stroke_glyph in
+          let godSvg:Svg.t= StrokeMap.find stroke.stroke_type stroke_glyph in
           let dx= float_of_int stroke.frame.x -. godSvg.viewBox.min_x
           and dy= float_of_int stroke.frame.y -. godSvg.viewBox.min_y
           and rx= float_of_int stroke.frame.width /. godSvg.viewBox.width
@@ -966,7 +978,7 @@ let outline_svg_of_god ~stroke_glyph god=
             then sprintf {|transform="%s"|} (String.concat " " [translate; scale])
             else ""
           in
-          let subgod_str= animate_svg_of_god ~indent:(indent+2+2) subgod.god in
+          let subgod_str= svg_of_god ~indent:(indent+2+2) subgod.god in
           (sprintf "%s<g %s>\n%s\n%s</g>"
             indent_str1 transform
             subgod_str
@@ -996,11 +1008,11 @@ let outline_svg_of_god ~stroke_glyph god=
   in
   match god.version_major, god.version_minor with
   | (1, 0) ->
-    let asvg= animate_svg_of_god ~indent:2 god in
+    let asvg= svg_of_god ~indent:2 god in
     sprintf
       "<svg viewBox=\"0,0 %d,%d\" xmlns=\"http://www.w3.org/2000/svg\">\n%s\n</svg>"
       size.width size.height asvg
-  | _-> failwith (sprintf "animate_svg_of_god %d %d" god.version_major god.version_minor)
+  | _-> failwith (sprintf "outline_svg_of_god %d %d" god.version_major god.version_minor)
 
 let animate_svg_of_god ~stroke_animate god=
   let size= calc_size god in
@@ -1096,4 +1108,125 @@ let animate_svg_of_god ~stroke_animate god=
       "<svg viewBox=\"0,0 %d,%d\" xmlns=\"http://www.w3.org/2000/svg\">\n%s\n</svg>"
       size.width size.height asvg
   | _-> failwith (sprintf "animate_svg_of_god %d %d" god.version_major god.version_minor)
+
+type glif_of_god=
+  | Glif of Glif.t
+  | Wrapped of { wrap: Glif.t; content: Glif.t }
+
+let outline_glif_of_god ~stroke_glyph god=
+  let size= calc_size god in
+  let glif_of_god ?(wrapped=true) god=
+    let name=
+      let base= string_of_code_point god.code_point in
+      if wrapped then
+        base ^ "_base"
+      else
+        base
+    in
+    let format= 2
+    and formatMinor= 0
+    and advance= Glif.{ width= float_of_int size.width; height= float_of_int size.height }
+    and unicodes= let (core,_)= god.code_point in [core]
+    and elements= ListLabels.map god.elements ~f:(fun element->
+      match element with
+      | Stroke stroke->
+        let godGlif:Glif.t= StrokeMap.find stroke.stroke_type stroke_glyph in
+        let dx= float_of_int stroke.frame.x
+        and dy= float_of_int stroke.frame.y
+        and rx= float_of_int stroke.frame.width /. godGlif.advance.width
+        and ry= float_of_int stroke.frame.height /. godGlif.advance.height in
+          Glif.Component
+          Glif.{
+            base= Some ("stroke/" ^ string_of_stroke_type stroke.stroke_type);
+            xScale= rx;
+            xyScale= 0.;
+            yxScale= 0.;
+            yScale= ry;
+            xOffset= dx;
+            yOffset= dy;
+            identifier= None;
+          }
+      | SubGod subgod->
+        let size= calc_size subgod.god in
+        let dx= float_of_int subgod.frame.x
+        and dy= float_of_int subgod.frame.y
+        and rx= float_of_int subgod.frame.width /. float_of_int size.width
+        and ry= float_of_int subgod.frame.height /. float_of_int size.height in
+          Glif.Component
+          Glif.{
+            base= Some ("subgod/" ^ string_of_code_point subgod.god.code_point);
+            xScale= rx;
+            xyScale= 0.;
+            yxScale= 0.;
+            yScale= ry;
+            xOffset= dx;
+            yOffset= dy;
+            identifier= None;
+          }
+      )
+    in
+    Glif.{
+      name;
+      format;
+      formatMinor;
+      advance;
+      unicodes;
+      elements;
+    }
+  in
+  let transfrom_wrap god=
+    let size= calc_size_f god in
+    let code_point= god.code_point in
+    let wrap=
+      let xScale, yScale, xOffset, yOffset=
+        match god.transform with
+        | NoTransform-> (1., 1., 0., 0.)
+        | MirrorHorizontal-> (-1., 1., -. size.width, 0.)
+        | MirrorVertical-> (1., -1., 0., -. size.height)
+        | Rotate180-> (-1., -1., -. size.width, -. size.height)
+      in
+      Glif.Component Glif.{
+        base= Some ("glyph/" ^ string_of_code_point code_point ^ "/content");
+        xScale;
+        xyScale= 0.;
+        yxScale= 0.;
+        yScale;
+        xOffset;
+        yOffset;
+        identifier= None;
+      }
+    in
+    let (core,_)= code_point in
+    Glif.{
+      name= string_of_code_point code_point;
+      format= 2;
+      formatMinor= 0;
+      advance= {width= 0.; height= 0.};
+      unicodes= [core];
+      elements= [wrap];
+    }
+  in
+  let gen_glif ()=
+    match god.transform with
+    | NoTransform-> Glif (glif_of_god ~wrapped:false god)
+    | MirrorHorizontal->
+      let content= glif_of_god god in
+      let wrap= transfrom_wrap god in
+      Wrapped { wrap; content }
+      (* ["scale(-1 1)"; x] *)
+    | MirrorVertical->
+      let content= glif_of_god god in
+      let wrap= transfrom_wrap god in
+      Wrapped { wrap; content }
+      (* ["scale(1 -1)"; y] *)
+    | Rotate180->
+      let content= glif_of_god god in
+      let wrap= transfrom_wrap god in
+      Wrapped { wrap; content }
+      (* ["scale(-1 -1)"; x; y] *)
+  in
+  match god.version_major, god.version_minor with
+  | (1, 0) ->
+    gen_glif ()
+  | _-> failwith (sprintf "outline_glif_of_god %d %d" god.version_major god.version_minor)
 

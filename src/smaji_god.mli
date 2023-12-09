@@ -8,6 +8,8 @@
  * This file is a part of Smaji_god.
  *)
 
+module Svg= Smaji_glyph_outline.Svg
+module Glif= Smaji_glyph_outline.Glif
 module Animate = Animate
 
 (*
@@ -21,7 +23,7 @@ type frame = { x : int; y : int; width : int; height : int; }
 type frame_f = { x : float; y : float; width : float; height : float; }
 (** Frame described in float *)
 
-val frame_to_frame_f : frame -> frame_f
+val frame_f_of_frame : frame -> frame_f
 (** Convert from frame to frame_f *)
 
 val frame_of_frame_f : frame_f -> frame
@@ -157,14 +159,20 @@ type transform =
 val transform_of_string : string -> transform
 (** Return the transform from its string representation *)
 
-val transform_to_string : transform -> string
+val string_of_transform : transform -> string
 (** Return the transform from its string representation *)
 
 val reduce_transforms : transform list -> transform list
 (** Return the reduced list from the transform list, remove all unnecessary transforms *)
 
-(** The type of element in god. A god can consists of strokes and/or sub gods. *)
-type element = Stroke of stroke | SubGod of subgod
+(** The type of god. *)
+type god = {
+  version_major : int; (** major version *)
+  version_minor : int; (** minor version *)
+  code_point : code_point; (** unicode code point *)
+  transform : transform; (** applied transform *)
+  elements : element list; (** consists of the elements *)
+}
 
 (** The type of subgod. *)
 and subgod = {
@@ -172,14 +180,8 @@ and subgod = {
   frame : frame; (** and its frame *)
 }
 
-(** The type of god. *)
-and god = {
-  version_major : int; (** major version *)
-  version_minor : int; (** minor version *)
-  code_point : code_point; (** unicode code point *)
-  transform : transform; (** applied transform *)
-  elements : element list; (** consists of the elements *)
-}
+(** The type of element in god. A god can consists of strokes and/or sub gods. *)
+and element = Stroke of stroke | SubGod of subgod
 
 val god_frame : god -> frame
 (** Calculate the frame of the god. *)
@@ -199,8 +201,8 @@ val string_of_element : ?indent:int -> element -> string
 val string_of_god : ?indent:int -> god -> string
 (** Return the string representation of the god *)
 
-val load_file : dir:string -> code_point -> god
-(** [load_file ~dir (core,variation)] loads dir/core/variation/default.xml then parses and returns a god. Because a god can reference other god as element, so the file hierarchy in [dir] is structured. *)
+val load_file : dir:string -> ?filename:string -> code_point -> god
+(** [load_file ~dir (core,variation)] loads [dir]/core/variation/[filename] then parses and returns a god, the [filename] is "default.xml" if is not specified. Because a god can reference other god as element, so the file hierarchy in [dir] is structured. *)
 
 val god_flatten : ?pos_ratio:pos_ratio -> god -> stroke list
 (** [god_flatten ?pos_ratio god] flattens the structured into a list of storkes, transformed by pos_ratio *)
@@ -253,19 +255,21 @@ module StrokeMap :
     val of_seq : (key * 'a) Seq.t -> 'a t
   end
 
-val load_glyphs : dir:string -> Animate.svg StrokeMap.t
+val load_glyphs : dir:string -> Svg.t StrokeMap.t
 (** [load_glyphs ~dir] loads basic stroke glyphs from [dir], and returns [Smaji_glyph_outline.Svg StrokeMap.t] *)
 
 val load_animates : dir:string -> Animate.t StrokeMap.t
 (** [load_animates ~dir] loads basic stroke gnimations from [dir], and returns [Animate.t StrokeMap.t] *)
 
+val convert_to_glif_glyphs : Svg.t StrokeMap.t -> Glif.t StrokeMap.t
+
 (** Return the svg part of the stroke *)
 val svg_of_stroke :
-  stroke_glyph:Animate.Svg.t StrokeMap.t -> stroke -> Animate.svg
+  stroke_glyph:Svg.t StrokeMap.t -> stroke -> Svg.t
 
 (** Return the paths of the svg part of the stroke *)
 val paths_of_stroke :
-  stroke_glyph:Animate.Svg.t StrokeMap.t ->
+  stroke_glyph:Svg.t StrokeMap.t ->
   stroke -> Animate.Path.t list
 
 (** Return the animate part of the stroke *)
@@ -276,15 +280,23 @@ val animate_of_stroke :
 val animations_of_stroke :
   stroke_animate:Animate.t StrokeMap.t -> stroke -> Rect.animation list
 
-(** Return the outline of the god *)
-val outline_of_god :
-  stroke_glyph:Animate.Svg.t StrokeMap.t -> god -> Animate.svg
+(** Return the svg outline of the god *)
+val svg_of_god :
+  stroke_glyph:Svg.t StrokeMap.t -> god -> Svg.t
 
 (** Return the svg-formatted outline of the god *)
 val outline_svg_of_god :
-  stroke_glyph:Animate.svg StrokeMap.t -> god -> string
+  stroke_glyph:Svg.t StrokeMap.t -> god -> string
 
 (** Return the svg-formatted animation of the god *)
 val animate_svg_of_god :
   stroke_animate:Animate.t StrokeMap.t -> god -> string
+
+type glif_of_god=
+  | Glif of Glif.t
+  | Wrapped of { wrap: Glif.t; content: Glif.t }
+
+(** Return the glif-formatted outline of the god *)
+val outline_glif_of_god :
+  stroke_glyph:Glif.t StrokeMap.t -> god -> glif_of_god
 
