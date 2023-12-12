@@ -17,6 +17,11 @@ val read_all : string -> string
 val write_all : string -> string -> unit
 *)
 
+type outline_type =
+  | Outline_svg
+  | Outline_glif
+(** The type of a outline, svg and glif are currently supported. *)
+
 type frame = { x : int; y : int; width : int; height : int; }
 (** Frame described in integer *)
 

@@ -44,6 +44,10 @@ let prepare ()=
       )
 *)
 
+type outline_type=
+  | Outline_svg
+  | Outline_glif
+
 type frame= {
   x: int;
   y: int;
