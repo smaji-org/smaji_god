@@ -1158,7 +1158,7 @@ let outline_glif_of_god ~stroke_glyph god=
         and ry= float_of_int subgod.frame.height /. float_of_int size.height in
           Glif.Component
           Glif.{
-            base= Some ("subgod/" ^ string_of_code_point subgod.god.code_point);
+            base= Some ("god/" ^ string_of_code_point subgod.god.code_point);
             xScale= rx;
             xyScale= 0.;
             yxScale= 0.;
