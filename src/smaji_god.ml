@@ -558,9 +558,7 @@ module Raw = struct
       }
     | _-> failwith "get_character"
 
-  let load_file path=
-    In_channel.with_open_text path @@ fun chan->
-    let _dtd, nodes= Ezxmlm.from_channel chan in
+  let of_xml_nodes nodes=
     let attrs, god= Ezxmlm.member_with_attr "god" nodes in
     let (version_major, version_minor)= attrs |> Ezxmlm.get_attr "version" |> version_of_string in
     let attrs, glyph= Ezxmlm.member_with_attr "glyph" god in
@@ -585,6 +583,17 @@ module Raw = struct
       transform;
       elements;
     }
+
+
+  let of_string string=
+    let _dtd, nodes= Ezxmlm.from_string string in
+    of_xml_nodes nodes
+
+  let load_file path=
+    In_channel.with_open_text path @@ fun chan->
+    let _dtd, nodes= Ezxmlm.from_channel chan in
+    of_xml_nodes nodes
+
 end
 
 type god= {
@@ -676,13 +685,28 @@ and string_of_element ?(indent=0) elem=
     sprintf "%s{ frame: %s; god:\n%s\n%s}" indent_str frame god indent_str
 
 let rec load_file ~dir ?(filename="default.xml") code_point=
-  let code_glyph, code_variation= code_point in
-  let glyph_dir= sprintf "%x" code_glyph in
+  let code_core, code_variation= code_point in
+  let core_dir= sprintf "%x" code_core in
   let variation_dir= sprintf "%x" code_variation in
   let ( / ) = Filename.concat in
-  let god_raw= Raw.load_file (dir / glyph_dir / variation_dir / filename) in
+  let god_raw= Raw.load_file (dir / core_dir / variation_dir / filename) in
   let elements= god_raw.elements |> List.map (function
-    | Raw.Ref ref-> SubGod { god= (load_file ~dir ref.code_point); frame= ref.frame }
+    | Raw.Ref ref-> SubGod { god= (load_file ~dir ~filename ref.code_point); frame= ref.frame }
+    | Raw.Stroke s-> Stroke s
+    )
+  in
+  {
+    version_major= god_raw.version_major;
+    version_minor= god_raw.version_minor;
+    code_point= god_raw.code_point;
+    transform= god_raw.transform;
+    elements;
+  }
+
+let of_string ~dir ?(filename="default.xml") string=
+  let god_raw= Raw.of_string string in
+  let elements= god_raw.elements |> List.map (function
+    | Raw.Ref ref-> SubGod { god= (load_file ~dir ~filename ref.code_point); frame= ref.frame }
     | Raw.Stroke s-> Stroke s
     )
   in

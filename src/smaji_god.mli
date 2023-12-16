@@ -206,8 +206,11 @@ val string_of_element : ?indent:int -> element -> string
 val string_of_god : ?indent:int -> god -> string
 (** Return the string representation of the god *)
 
+val of_string : dir:string -> ?filename:string -> string -> god
+(** [load_file ~dir ?filename string] parses [string] and returns a god, the [filename] is "default.xml" if is not specified. Because a god can reference other god as element, so the file hierarchy in [dir] is hierarchically structured. *)
+
 val load_file : dir:string -> ?filename:string -> code_point -> god
-(** [load_file ~dir (core,variation)] loads [dir]/core/variation/[filename] then parses and returns a god, the [filename] is "default.xml" if is not specified. Because a god can reference other god as element, so the file hierarchy in [dir] is structured. *)
+(** [load_file ~dir ?filename (core,variation)] loads [dir]/core/variation/[filename] then parses and returns a god, the [filename] is "default.xml" if is not specified. Because a god can reference other god as element, so the file hierarchy in [dir] is hierarchically structured. *)
 
 val god_flatten : ?pos_ratio:pos_ratio -> god -> stroke list
 (** [god_flatten ?pos_ratio god] flattens the structured into a list of storkes, transformed by pos_ratio *)
