@@ -383,6 +383,13 @@ let string_of_code_point cp=
   let c,e= cp in
   sprintf "(%x,%x)" c e
 
+let path_of_code_point code_point=
+  let code_core, code_variation= code_point in
+  let core_dir= sprintf "%x" code_core in
+  let variation_dir= sprintf "%x" code_variation in
+  let ( / ) = Filename.concat in
+  core_dir / variation_dir
+
 let version_of_string str=
   let versions= String.split_on_char '.' str in
   match versions with
@@ -685,11 +692,8 @@ and string_of_element ?(indent=0) elem=
     sprintf "%s{ frame: %s; god:\n%s\n%s}" indent_str frame god indent_str
 
 let rec load_file ~dir ?(filename="default.xml") code_point=
-  let code_core, code_variation= code_point in
-  let core_dir= sprintf "%x" code_core in
-  let variation_dir= sprintf "%x" code_variation in
   let ( / ) = Filename.concat in
-  let god_raw= Raw.load_file (dir / core_dir / variation_dir / filename) in
+  let god_raw= Raw.load_file (dir / path_of_code_point code_point / filename) in
   let elements= god_raw.elements |> List.map (function
     | Raw.Ref ref-> SubGod { god= (load_file ~dir ~filename ref.code_point); frame= ref.frame }
     | Raw.Stroke s-> Stroke s
@@ -1147,7 +1151,7 @@ let outline_glif_of_god ~stroke_glyph god=
     let name=
       let base= string_of_code_point god.code_point in
       if wrapped then
-        base ^ "_base"
+        base ^ "_content"
       else
         base
     in
@@ -1182,7 +1186,7 @@ let outline_glif_of_god ~stroke_glyph god=
         and ry= float_of_int subgod.frame.height /. float_of_int size.height in
           Glif.Component
           Glif.{
-            base= Some ("god/" ^ string_of_code_point subgod.god.code_point);
+            base= Some (string_of_code_point subgod.god.code_point);
             xScale= rx;
             xyScale= 0.;
             yxScale= 0.;
@@ -1214,7 +1218,7 @@ let outline_glif_of_god ~stroke_glyph god=
         | Rotate180-> (-1., -1., -. size.width, -. size.height)
       in
       Glif.Component Glif.{
-        base= Some ("glyph/" ^ string_of_code_point code_point ^ "/content");
+        base= Some (string_of_code_point code_point ^ "_content");
         xScale;
         xyScale= 0.;
         yxScale= 0.;
