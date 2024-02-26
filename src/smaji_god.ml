@@ -62,7 +62,7 @@ type frame_f= {
   height: float;
 }
 
-let frame_f_of_frame (frame:frame)= {
+let frame_to_frame_f (frame:frame)= {
   x= float_of_int frame.x;
   y= float_of_int frame.y;
   width= float_of_int frame.width;
@@ -107,7 +107,7 @@ let pos_ratio_adjust_f ~pos_ratio frame_f=
   { x; y; width; height }
 
 let pos_ratio_adjust ~pos_ratio frame=
-  let frame_f= frame_f_of_frame frame in
+  let frame_f= frame_to_frame_f frame in
   let x= frame_f.x *. pos_ratio.ratio.ratio_x +. pos_ratio.pos.pos_x
   and y= frame_f.y *. pos_ratio.ratio.ratio_y +. pos_ratio.pos.pos_y
   and width= frame_f.width *. pos_ratio.ratio.ratio_x
@@ -401,7 +401,7 @@ type stroke= {
 }
 
 let to_stroke_f stroke= {
-  frame_f= frame_f_of_frame stroke.frame;
+  frame_f= frame_to_frame_f stroke.frame;
   stroke_type= stroke.stroke_type;
 }
 
@@ -725,7 +725,7 @@ let rec god_flatten ?(pos_ratio=pos_ratio_default) god=
       match element with
       | Stroke stroke->
         let frame= stroke.frame
-          |> frame_f_of_frame
+          |> frame_to_frame_f
           |> pos_ratio_adjust_f ~pos_ratio
           |> frame_of_frame_f
         in

@@ -28,7 +28,7 @@ type frame = { x : int; y : int; width : int; height : int; }
 type frame_f = { x : float; y : float; width : float; height : float; }
 (** Frame described in float *)
 
-val frame_f_of_frame : frame -> frame_f
+val frame_to_frame_f : frame -> frame_f
 (** Convert from frame to frame_f *)
 
 val frame_of_frame_f : frame_f -> frame
