@@ -1,0 +1,354 @@
+= Glyph Outline Description
+
+Smaji GOD is a markup language, an XML schema, used to record glyph accurately.
+
+The Glyph Outline Description (GOD) represents a single glyph. Even subtly different strokes are differentiated in GOD (63 types), and the position and size information is attributed. The strokes, and existing GOD data are composited to form new GOD data. Accurate, precise, composable, that's GOD.
+
+The data structure of GOD:
+
+[source,]
+----
+god
+    glyph
+        stroke
+        reference
+        character
+----
+
+== Formal definition
+
+http://cjkv.smaji.org/xml/1.0/xsd/god.xsd
+
+== Specification
+
+=== god: the top level element
+
+
+.Attributes
+[]
+|===
+|Name |Description |Required
+
+|version
+|the format version, currently "1.0"
+|Yes
+
+|===
+
+.Child elements
+[]
+|===
+|Name |Description | Required
+
+|glyph
+|may occur at most once
+|Yes
+
+|===
+
+
+=== glyph: glyph description
+
+.Attributes
+[]
+|===
+|Name |Description |Required
+
+|unicode
+|unicode code point, a hexadecimal number representing a unicode scalar, and after the number, a value called variation selector can be appended separating by a comma
+|Yes
+
+|transform
+|can be "mirror_horizontal", "mirror_vertical" or "rotate180", the entire glyph is transformed according to the value 
+|No
+
+|===
+
+.Child elements
+[]
+|===
+|Name |Description | Required
+
+|stroke
+|may occur any number of times
+|No
+
+|ref
+|may occur any number of times
+|No
+
+|character
+|may occur any number of times
+|No
+
+|===
+
+=== stroke: stroke description
+
+.Attributes
+[]
+|===
+|Name |Description |Required
+
+|type
+|one of 63 types of stroke, see the xref:stroke_list[table] below
+|Yes
+
+|x
+|the 'x' coordinate
+|Yes
+
+|y
+|the 'y' coordinate
+|Yes
+
+|weight
+|the 'weight' of the stroke
+|Yes
+
+|height
+|the 'height' of the stroke
+|Yes
+
+|===
+
+
+[#stroke_list]
+.63 different types of stroke
+[%collapsible]
+====
+[]
+----
+h     | Horizontal
+sh    | Slanted Horizontal
+u     | Upward horizontal
+du    | Dot – Upward horizontal
+v     | Vertical
+sv    | Slanted Vertical
+rsv   | Right Slanted Vertical
+t     | Throw
+ft    | Flat Throw
+wt    | Wilted Throw
+d     | Dot
+ed    | Extended Dot
+ld    | Left Dot
+wd    | Wilted Dot
+p     | Press
+up    | Upward horizontal – Press
+hp    | Horizontal – Press
+fp    | Flat Press
+ufp   | Upward horizontal – Flat Press
+c     | Clockwise curve
+a     | Anticlockwise curve
+o     | Oval
+hj    | Horizontal – J hook
+uj    | Upward horizontal – J hook
+ht    | Horizontal – Throw
+hsv   | Horizontal – Slanted Vertical
+hv    | Horizontal – Vertical
+hvj   | Horizontal – Vertical – J hook
+htj   | Horizontal – Throw – J hook
+utj   | Upward horizontal – Throw – J hook
+hvh   | Horizontal – Vertical – Horizontal
+hvu   | Horizontal – Vertical – Upward horizontal
+ha    | Horizontal – Anticlockwise curve
+haj   | Horizontal – Anticlockwise curve – J hook
+hpj   | Horizontal – Press – J hook
+htaj  | Horizontal – Throw – Anticlockwise curve – J hook
+htc   | Horizontal – Throw – Clockwise curve
+htht  | Horizontal – Throw – Horizontal – Throw
+htcj  | Horizontal – Throw – Clockwise curve – J hook
+hvhv  | Horizontal – Vertical – Horizontal – Vertical
+hthtj | Horizontal – Throw – Horizontal – Throw – J hook
+vu    | Vertical – Upward horizontal
+vh    | Vertical – Horizontal
+va    | Vertical – Anticlockwise curve
+vaj   | Vertical – Anticlockwise curve – J hook
+vhv   | Vertical – Horizontal – Vertical
+vht   | Vertical – Horizontal – Throw
+vhtj  | Vertical – Horizontal – Throw – J hook
+vj    | Vertical – J hook
+vc    | Vertical – Clockwise curve
+vcj   | Vertical – Clockwise curve – J hook
+tu    | Throw – Upward horizontal
+th    | Throw – Horizontal
+td    | Throw – Dot
+wtd   | Wilted Throw – Dot
+tht   | Throw – Horizontal – Throw
+thtj  | Throw – Horizontal – Throw – J hook
+tj    | Throw – J hook
+cj    | Clockwise curve – J hook
+fpj   | Flat Press – J hook
+pj    | Press – J hook
+thtaj | Throw – Horizontal – Throw – Anticlockwise curve – J hook
+tod   | Throw – Oval – Dot
+
+----
+====
+
+
+=== ref: reference description
+
+.Attributes
+[]
+|===
+|Name |Description |Required
+
+|unicode
+|unicode code point, a hexadecimal number representing a unicode scalar, and after the number, a value called variation selector can be appended separating by a comma
+|Yes
+
+|x
+|the 'x' coordinate
+|Yes
+
+|y
+|the 'y' coordinate
+|Yes
+
+|weight
+|the 'weight' of the referenced glyph
+|Yes
+
+|height
+|the 'height' of the referenced glyph
+|Yes
+
+|===
+
+
+=== character: character description
+
+.Attributes
+[]
+|===
+|Name |Description |Required
+
+|utf8
+|utf8 encoded character
+|Yes
+
+|x
+|the 'x' coordinate
+|Yes
+
+|y
+|the 'y' coordinate
+|Yes
+
+|weight
+|the 'weight' of the referenced glyph
+|Yes
+
+|height
+|the 'height' of the referenced glyph
+|Yes
+
+|===
+
+
+== Samples
+
+=== Sample 1
+
+[source,xml]
+<?xml version="1.0" encoding="UTF-8"?>
+<god version="1.0"
+  xmlns="http://cjkv.smaji.org/ns/god"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://cjkv.smaji.org/ns/god http://cjkv.smaji.org/xml/1.0/xsd/god.xsd">
+  <glyph unicode="516b,0">
+    <stroke type="t" x="0" y="0" width="56" height="112"/>
+    <stroke type="p" x="76" y="0" width="56" height="112"/>
+  </glyph>
+</god>
+
+This GOD describes a glyph consisting of strokes purely, a throw (㇒) and a press (㇏).
+
+This is kind of a bureaucratic version. Though the specified schema location helps the text editor find the formal definition so that it can perform editing completion and hinting for users.
+
+Here is a simplified version:
+
+[source,xml]
+<god version="1.0">
+  <glyph unicode="516b,0">
+    <stroke type="t" x="0" y="0" width="56" height="112"/>
+    <stroke type="p" x="76" y="0" width="56" height="112"/>
+  </glyph>
+</god>
+
+The order of the children inside glyph element is that of the strokes of the glyph.
+
+.Click here to view the generated glyph
+[%collapsible]
+====
+image::https://github.com/kandu/static/raw/master/smaji/cjkv/god/516b,0.outline.svg[]
+====
+
+=== Sample 2
+
+In sample 1, a glyph of character "八" is purely composed by strokes. In this sample, a glyph composed by an already exiting GOD and a stroke is illustrated.
+
+[source,xml]
+<god version="1.0">
+  <glyph unicode="4e15,0">
+    <ref unicode= "4e0d" x="0" y="0" width="128" height="120"/>
+    <stroke type="h" x="0" y="114" width="128" height="14"/>
+  </glyph>
+</god>
+
+.Click here to view the generated glyph
+[%collapsible]
+====
+image::https://github.com/kandu/static/raw/master/smaji/cjkv/god/4e15,0.outline.svg[]
+====
+
+This GOD describes a glyph consisting of a glyph which is of unicode 4e0d, i.e. "不" above and a stroke "Horizontal" below. The result is a glyph of "丕".
+
+Suppose that there exists a variation of character "不" and the unicode of the it is "4e0d,e0100", then the GOD would be:
+
+[source,xml]
+<god version="1.0">
+  <glyph unicode="4e15,0">
+    <ref unicode= "4e0d,e0100" x="0" y="0" width="128" height="120"/>
+    <stroke type="h" x="0" y="114" width="128" height="14"/>
+  </glyph>
+</god>
+
+As seen above, the variation selector is appended to the original unicode value separated by a comma.
+
+=== Sample 3
+
+In sample 2, a glyph is composed by an exiting GOD and a stroke. The exiting GOD is referenced by unicode code point, which is of unambiguous. Even so, "不" is such a common and unambiguous character that it can be typed in directly, as follows:
+
+[source,xml]
+<god version="1.0">
+  <glyph unicode="4e15,0">
+    <character utf8= "不" x="0" y="0" width="128" height="120"/>
+    <stroke type="h" x="0" y="114" width="128" height="14"/>
+  </glyph>
+</god>
+
+=== Sample 4
+
+[source,xml]
+<god version="1.0">
+  <glyph unicode="2010f,0" transform="rotate180">
+    <character utf8="了" x="0" y="0" width="88" height="128" />
+  </glyph>
+</god>
+
+.Click here to view the generated glyph
+[%collapsible]
+====
+image::https://github.com/kandu/static/raw/master/smaji/cjkv/god/2010f,0.outline.svg[]
+====
+
+This sample is an illustration that shows us how to transform the glyph. "transform" is an optional attribute that applies transformation to the entire glyph. Available transformations include "mirror_horizontal", "mirror_vertical" and "rotate180".
+
+== Related projects
+
+https://github.com/smaji-org/smaji_dyn_glyph[smaji_dyn_glyph], a processor for parsing, generating and converting glyph files.
+
+https://github.com/smaji-org/smaji_glyph_outline[smaji_glyph_outline], a library to read, write and translate glyph outline files.
+
