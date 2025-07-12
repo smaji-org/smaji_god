@@ -3,6 +3,6 @@
 (library
   (name smaji_god)
   (public_name smaji_god)
-  (libraries smaji_glyph_outline)
+  (libraries smaji_glyph_path)
   (flags (:standard -safe-string)))
 

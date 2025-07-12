@@ -1,18 +1,18 @@
 (*
  * smaji_god.ml
  * -----------
- * Copyright : (c) 2023 - 2023, smaji.org
- * Copyright : (c) 2023 - 2023, ZAN DoYe <zandoye@gmail.com>
+ * Copyright : (c) 2023 - 2025, smaji.org
+ * Copyright : (c) 2023 - 2025, ZAN DoYe <zandoye@gmail.com>
  * Licence   : GPL2
  *
  * This file is a part of Smaji_god.
  *)
 
-open Smaji_glyph_outline.Utils
+open Smaji_glyph_path.Utils
 
 module Animate = Animate
-module Svg= Smaji_glyph_outline.Svg
-module Glif= Smaji_glyph_outline.Glif
+module Svg= Smaji_glyph_path.Svg
+module Glif= Smaji_glyph_path.Glif
 
 open Printf
 
@@ -764,69 +764,69 @@ let rec god_flatten ?(pos_ratio=pos_ratio_default) god=
 module StrokeMap= Map.Make(Stroke)
 
 let load_glyphs ~dir= let ( / ) = Filename.concat in [
-  (S_a, Smaji_glyph_outline.Svg.load_file_exn @@ dir / "a.svg");
-  (S_cj, Smaji_glyph_outline.Svg.load_file_exn @@ dir / "cj.svg");
-  (S_c, Smaji_glyph_outline.Svg.load_file_exn @@ dir / "c.svg");
-  (S_d, Smaji_glyph_outline.Svg.load_file_exn @@ dir / "d.svg");
-  (S_du, Smaji_glyph_outline.Svg.load_file_exn @@ dir / "du.svg");
-  (S_ed, Smaji_glyph_outline.Svg.load_file_exn @@ dir / "ed.svg");
-  (S_fpj, Smaji_glyph_outline.Svg.load_file_exn @@ dir / "fpj.svg");
-  (S_fp, Smaji_glyph_outline.Svg.load_file_exn @@ dir / "fp.svg");
-  (S_ft, Smaji_glyph_outline.Svg.load_file_exn @@ dir / "ft.svg");
-  (S_haj, Smaji_glyph_outline.Svg.load_file_exn @@ dir / "haj.svg");
-  (S_ha, Smaji_glyph_outline.Svg.load_file_exn @@ dir / "ha.svg");
-  (S_hj, Smaji_glyph_outline.Svg.load_file_exn @@ dir / "hj.svg");
-  (S_hpj, Smaji_glyph_outline.Svg.load_file_exn @@ dir / "hpj.svg");
-  (S_hp, Smaji_glyph_outline.Svg.load_file_exn @@ dir / "hp.svg");
-  (S_h, Smaji_glyph_outline.Svg.load_file_exn @@ dir / "h.svg");
-  (S_hsv, Smaji_glyph_outline.Svg.load_file_exn @@ dir / "hsv.svg");
-  (S_htaj, Smaji_glyph_outline.Svg.load_file_exn @@ dir / "htaj.svg");
-  (S_htcj, Smaji_glyph_outline.Svg.load_file_exn @@ dir / "htcj.svg");
-  (S_htc, Smaji_glyph_outline.Svg.load_file_exn @@ dir / "htc.svg");
-  (S_hthtj, Smaji_glyph_outline.Svg.load_file_exn @@ dir / "hthtj.svg");
-  (S_htht, Smaji_glyph_outline.Svg.load_file_exn @@ dir / "htht.svg");
-  (S_htj, Smaji_glyph_outline.Svg.load_file_exn @@ dir / "htj.svg");
-  (S_ht, Smaji_glyph_outline.Svg.load_file_exn @@ dir / "ht.svg");
-  (S_hvh, Smaji_glyph_outline.Svg.load_file_exn @@ dir / "hvh.svg");
-  (S_hvhv, Smaji_glyph_outline.Svg.load_file_exn @@ dir / "hvhv.svg");
-  (S_hvj, Smaji_glyph_outline.Svg.load_file_exn @@ dir / "hvj.svg");
-  (S_hv, Smaji_glyph_outline.Svg.load_file_exn @@ dir / "hv.svg");
-  (S_hvu, Smaji_glyph_outline.Svg.load_file_exn @@ dir / "hvu.svg");
-  (S_ld, Smaji_glyph_outline.Svg.load_file_exn @@ dir / "ld.svg");
-  (S_o, Smaji_glyph_outline.Svg.load_file_exn @@ dir / "o.svg");
-  (S_pj, Smaji_glyph_outline.Svg.load_file_exn @@ dir / "pj.svg");
-  (S_p, Smaji_glyph_outline.Svg.load_file_exn @@ dir / "p.svg");
-  (S_rsv, Smaji_glyph_outline.Svg.load_file_exn @@ dir / "rsv.svg");
-  (S_sh, Smaji_glyph_outline.Svg.load_file_exn @@ dir / "sh.svg");
-  (S_sv, Smaji_glyph_outline.Svg.load_file_exn @@ dir / "sv.svg");
-  (S_td, Smaji_glyph_outline.Svg.load_file_exn @@ dir / "td.svg");
-  (S_th, Smaji_glyph_outline.Svg.load_file_exn @@ dir / "th.svg");
-  (S_thtaj, Smaji_glyph_outline.Svg.load_file_exn @@ dir / "thtaj.svg");
-  (S_thtj, Smaji_glyph_outline.Svg.load_file_exn @@ dir / "thtj.svg");
-  (S_tht, Smaji_glyph_outline.Svg.load_file_exn @@ dir / "tht.svg");
-  (S_tj, Smaji_glyph_outline.Svg.load_file_exn @@ dir / "tj.svg");
-  (S_tod, Smaji_glyph_outline.Svg.load_file_exn @@ dir / "tod.svg");
-  (S_t, Smaji_glyph_outline.Svg.load_file_exn @@ dir / "t.svg");
-  (S_tu, Smaji_glyph_outline.Svg.load_file_exn @@ dir / "tu.svg");
-  (S_ufp, Smaji_glyph_outline.Svg.load_file_exn @@ dir / "ufp.svg");
-  (S_uj, Smaji_glyph_outline.Svg.load_file_exn @@ dir / "uj.svg");
-  (S_up, Smaji_glyph_outline.Svg.load_file_exn @@ dir / "up.svg");
-  (S_u, Smaji_glyph_outline.Svg.load_file_exn @@ dir / "u.svg");
-  (S_utj, Smaji_glyph_outline.Svg.load_file_exn @@ dir / "utj.svg");
-  (S_vaj, Smaji_glyph_outline.Svg.load_file_exn @@ dir / "vaj.svg");
-  (S_va, Smaji_glyph_outline.Svg.load_file_exn @@ dir / "va.svg");
-  (S_vcj, Smaji_glyph_outline.Svg.load_file_exn @@ dir / "vcj.svg");
-  (S_vc, Smaji_glyph_outline.Svg.load_file_exn @@ dir / "vc.svg");
-  (S_vh, Smaji_glyph_outline.Svg.load_file_exn @@ dir / "vh.svg");
-  (S_vhtj, Smaji_glyph_outline.Svg.load_file_exn @@ dir / "vhtj.svg");
-  (S_vht, Smaji_glyph_outline.Svg.load_file_exn @@ dir / "vht.svg");
-  (S_vhv, Smaji_glyph_outline.Svg.load_file_exn @@ dir / "vhv.svg");
-  (S_vj, Smaji_glyph_outline.Svg.load_file_exn @@ dir / "vj.svg");
-  (S_v, Smaji_glyph_outline.Svg.load_file_exn @@ dir / "v.svg");
-  (S_vu, Smaji_glyph_outline.Svg.load_file_exn @@ dir / "vu.svg");
-  (S_wd, Smaji_glyph_outline.Svg.load_file_exn @@ dir / "wd.svg");
-  (S_wtd, Smaji_glyph_outline.Svg.load_file_exn @@ dir / "wtd.svg");
-  (S_wt, Smaji_glyph_outline.Svg.load_file_exn @@ dir / "wt.svg");
+  (S_a, Smaji_glyph_path.Svg.load_file_exn @@ dir / "a.svg");
+  (S_cj, Smaji_glyph_path.Svg.load_file_exn @@ dir / "cj.svg");
+  (S_c, Smaji_glyph_path.Svg.load_file_exn @@ dir / "c.svg");
+  (S_d, Smaji_glyph_path.Svg.load_file_exn @@ dir / "d.svg");
+  (S_du, Smaji_glyph_path.Svg.load_file_exn @@ dir / "du.svg");
+  (S_ed, Smaji_glyph_path.Svg.load_file_exn @@ dir / "ed.svg");
+  (S_fpj, Smaji_glyph_path.Svg.load_file_exn @@ dir / "fpj.svg");
+  (S_fp, Smaji_glyph_path.Svg.load_file_exn @@ dir / "fp.svg");
+  (S_ft, Smaji_glyph_path.Svg.load_file_exn @@ dir / "ft.svg");
+  (S_haj, Smaji_glyph_path.Svg.load_file_exn @@ dir / "haj.svg");
+  (S_ha, Smaji_glyph_path.Svg.load_file_exn @@ dir / "ha.svg");
+  (S_hj, Smaji_glyph_path.Svg.load_file_exn @@ dir / "hj.svg");
+  (S_hpj, Smaji_glyph_path.Svg.load_file_exn @@ dir / "hpj.svg");
+  (S_hp, Smaji_glyph_path.Svg.load_file_exn @@ dir / "hp.svg");
+  (S_h, Smaji_glyph_path.Svg.load_file_exn @@ dir / "h.svg");
+  (S_hsv, Smaji_glyph_path.Svg.load_file_exn @@ dir / "hsv.svg");
+  (S_htaj, Smaji_glyph_path.Svg.load_file_exn @@ dir / "htaj.svg");
+  (S_htcj, Smaji_glyph_path.Svg.load_file_exn @@ dir / "htcj.svg");
+  (S_htc, Smaji_glyph_path.Svg.load_file_exn @@ dir / "htc.svg");
+  (S_hthtj, Smaji_glyph_path.Svg.load_file_exn @@ dir / "hthtj.svg");
+  (S_htht, Smaji_glyph_path.Svg.load_file_exn @@ dir / "htht.svg");
+  (S_htj, Smaji_glyph_path.Svg.load_file_exn @@ dir / "htj.svg");
+  (S_ht, Smaji_glyph_path.Svg.load_file_exn @@ dir / "ht.svg");
+  (S_hvh, Smaji_glyph_path.Svg.load_file_exn @@ dir / "hvh.svg");
+  (S_hvhv, Smaji_glyph_path.Svg.load_file_exn @@ dir / "hvhv.svg");
+  (S_hvj, Smaji_glyph_path.Svg.load_file_exn @@ dir / "hvj.svg");
+  (S_hv, Smaji_glyph_path.Svg.load_file_exn @@ dir / "hv.svg");
+  (S_hvu, Smaji_glyph_path.Svg.load_file_exn @@ dir / "hvu.svg");
+  (S_ld, Smaji_glyph_path.Svg.load_file_exn @@ dir / "ld.svg");
+  (S_o, Smaji_glyph_path.Svg.load_file_exn @@ dir / "o.svg");
+  (S_pj, Smaji_glyph_path.Svg.load_file_exn @@ dir / "pj.svg");
+  (S_p, Smaji_glyph_path.Svg.load_file_exn @@ dir / "p.svg");
+  (S_rsv, Smaji_glyph_path.Svg.load_file_exn @@ dir / "rsv.svg");
+  (S_sh, Smaji_glyph_path.Svg.load_file_exn @@ dir / "sh.svg");
+  (S_sv, Smaji_glyph_path.Svg.load_file_exn @@ dir / "sv.svg");
+  (S_td, Smaji_glyph_path.Svg.load_file_exn @@ dir / "td.svg");
+  (S_th, Smaji_glyph_path.Svg.load_file_exn @@ dir / "th.svg");
+  (S_thtaj, Smaji_glyph_path.Svg.load_file_exn @@ dir / "thtaj.svg");
+  (S_thtj, Smaji_glyph_path.Svg.load_file_exn @@ dir / "thtj.svg");
+  (S_tht, Smaji_glyph_path.Svg.load_file_exn @@ dir / "tht.svg");
+  (S_tj, Smaji_glyph_path.Svg.load_file_exn @@ dir / "tj.svg");
+  (S_tod, Smaji_glyph_path.Svg.load_file_exn @@ dir / "tod.svg");
+  (S_t, Smaji_glyph_path.Svg.load_file_exn @@ dir / "t.svg");
+  (S_tu, Smaji_glyph_path.Svg.load_file_exn @@ dir / "tu.svg");
+  (S_ufp, Smaji_glyph_path.Svg.load_file_exn @@ dir / "ufp.svg");
+  (S_uj, Smaji_glyph_path.Svg.load_file_exn @@ dir / "uj.svg");
+  (S_up, Smaji_glyph_path.Svg.load_file_exn @@ dir / "up.svg");
+  (S_u, Smaji_glyph_path.Svg.load_file_exn @@ dir / "u.svg");
+  (S_utj, Smaji_glyph_path.Svg.load_file_exn @@ dir / "utj.svg");
+  (S_vaj, Smaji_glyph_path.Svg.load_file_exn @@ dir / "vaj.svg");
+  (S_va, Smaji_glyph_path.Svg.load_file_exn @@ dir / "va.svg");
+  (S_vcj, Smaji_glyph_path.Svg.load_file_exn @@ dir / "vcj.svg");
+  (S_vc, Smaji_glyph_path.Svg.load_file_exn @@ dir / "vc.svg");
+  (S_vh, Smaji_glyph_path.Svg.load_file_exn @@ dir / "vh.svg");
+  (S_vhtj, Smaji_glyph_path.Svg.load_file_exn @@ dir / "vhtj.svg");
+  (S_vht, Smaji_glyph_path.Svg.load_file_exn @@ dir / "vht.svg");
+  (S_vhv, Smaji_glyph_path.Svg.load_file_exn @@ dir / "vhv.svg");
+  (S_vj, Smaji_glyph_path.Svg.load_file_exn @@ dir / "vj.svg");
+  (S_v, Smaji_glyph_path.Svg.load_file_exn @@ dir / "v.svg");
+  (S_vu, Smaji_glyph_path.Svg.load_file_exn @@ dir / "vu.svg");
+  (S_wd, Smaji_glyph_path.Svg.load_file_exn @@ dir / "wd.svg");
+  (S_wtd, Smaji_glyph_path.Svg.load_file_exn @@ dir / "wtd.svg");
+  (S_wt, Smaji_glyph_path.Svg.load_file_exn @@ dir / "wt.svg");
   ]
   |> List.to_seq
   |> StrokeMap.of_seq
@@ -900,7 +900,7 @@ let load_animates ~dir= let ( / ) = Filename.concat in [
   |> StrokeMap.of_seq
 
 let convert_to_glif_glyphs glyphs=
-  glyphs |> StrokeMap.map Smaji_glyph_outline.glif_of_svg
+  glyphs |> StrokeMap.map Smaji_glyph_path.glif_of_svg_exn
 
 let svg_of_stroke ~stroke_glyph stroke=
   let svg: Svg.t= StrokeMap.find stroke.stroke_type stroke_glyph in
@@ -913,8 +913,8 @@ let svg_of_stroke ~stroke_glyph stroke=
   and dx= float_of_int stroke.frame.x
   and dy= float_of_int stroke.frame.y in
   svg
-    |> Smaji_glyph_outline.Svg.Adjust.scale ~x ~y
-    |> Smaji_glyph_outline.Svg.Adjust.translate ~dx ~dy
+    |> Smaji_glyph_path.Svg.Adjust.scale ~x ~y
+    |> Smaji_glyph_path.Svg.Adjust.translate ~dx ~dy
 
 let paths_of_stroke ~stroke_glyph stroke=
   let svg= svg_of_stroke ~stroke_glyph stroke in
@@ -941,14 +941,14 @@ let animations_of_stroke ~stroke_animate stroke=
   animate.animations
 
 let svg_of_god ~stroke_glyph god=
-  let viewBox= Smaji_glyph_outline.Svg.ViewBox.{ min_x= 0.; min_y= 0.; width= 0.; height= 0.; }
+  let viewBox= Smaji_glyph_path.Svg.ViewBox.{ min_x= 0.; min_y= 0.; width= 0.; height= 0.; }
   and paths= god
     |> god_flatten
     |> List.map (paths_of_stroke ~stroke_glyph)
     |> List.concat
   in
-  let svg= Smaji_glyph_outline.Svg.{ viewBox; paths } in
-  Smaji_glyph_outline.Svg.Adjust.viewBox_fitFrame_reset svg
+  let svg= Smaji_glyph_path.Svg.{ viewBox; paths } in
+  Smaji_glyph_path.Svg.Adjust.viewBox_fitFrame_reset svg
 
 let outline_svg_of_god ~stroke_glyph god=
   let size= calc_size god in

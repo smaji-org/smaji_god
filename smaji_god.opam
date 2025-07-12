@@ -11,9 +11,9 @@ build: [
 depends: [
   "ocaml" {>= "4.08.1"}
   "dune" {>= "1.6.0"}
-  "smaji_glyph_outline"
+  "smaji_glyph_path"
 ]
-synopsis: "glyph outline description lang (god) manipulation library"
+synopsis: "glyph path description lang (god) manipulation library"
 description: """
 A library to analyze, reform, compose god
 """
