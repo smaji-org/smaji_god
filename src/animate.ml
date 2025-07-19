@@ -9,7 +9,7 @@
  *)
 
 module Svg= Smaji_glyph_path.Svg
-module Path= Svg.Path
+module Path= Svg.Svg_path
 module ViewBox= Svg.ViewBox
 
 type svg= Svg.t
@@ -112,10 +112,10 @@ module Adjust = struct
     match Path.get_frame_paths svg.paths with
     | None-> t
     | Some frame->
-      let height= frame.py -. frame.ny
-      and width= frame.px -. frame.nx
-      and min_x= frame.nx
-      and min_y= frame.ny in
+      let height= frame.max_y -. frame.min_y
+      and width= frame.max_x -. frame.min_x
+      and min_x= frame.min_x
+      and min_y= frame.min_y in
       let viewBox= ViewBox.{ min_x; min_y; width; height } in
       let svg= { svg with viewBox } in
       { t with svg } |> reset_viewBox

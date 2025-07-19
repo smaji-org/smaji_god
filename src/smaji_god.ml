@@ -8,7 +8,6 @@
  * This file is a part of Smaji_god.
  *)
 
-open Smaji_glyph_path.Utils
 
 module Animate = Animate
 module Svg= Smaji_glyph_path.Svg
@@ -982,7 +981,7 @@ let outline_svg_of_god ~stroke_glyph god=
           in
           let paths=
             let paths_svg= godSvg.paths
-              |> List.map (Animate.Svg.Path.to_string_svg ~indent:(indent+6))
+              |> List.map (Animate.Svg.Svg_path.to_string_svg ~indent:(indent+6))
               |> String.concat "\n"
             in
             sprintf "%s<path d=\"%s\"\n%s/>" indent_str2 paths_svg indent_str2

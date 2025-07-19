@@ -9,7 +9,7 @@
  *)
 
 module Svg= Smaji_glyph_path.Svg
-module Path= Svg.Path
+module Path= Svg.Svg_path
 module ViewBox= Svg.ViewBox
 
 module Utils= Smaji_glyph_path.Utils
