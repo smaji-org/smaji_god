@@ -112,10 +112,10 @@ module Adjust = struct
     match Path.get_frame_paths svg.paths with
     | None-> t
     | Some frame->
-      let height= frame.max_y -. frame.min_y
-      and width= frame.max_x -. frame.min_x
-      and min_x= frame.min_x
-      and min_y= frame.min_y in
+      let height= frame.height
+      and width= frame.width
+      and min_x= frame.x
+      and min_y= frame.y in
       let viewBox= ViewBox.{ min_x; min_y; width; height } in
       let svg= { svg with viewBox } in
       { t with svg } |> reset_viewBox

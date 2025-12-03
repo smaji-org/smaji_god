@@ -246,7 +246,7 @@ val animate_of_stroke :
 val animations_of_stroke :
   stroke_animate:Animate.t StrokeMap.t -> stroke -> Rect.animation list
 
-(** Return the svg outline of the god *)
+(** Return the svg outline of the god. Note: this function only works with god without any transformed Components inside, or an Invalid_argument exception is raised *)
 val svg_of_god :
   stroke_glyph:Svg.t StrokeMap.t -> god -> Svg.t
 

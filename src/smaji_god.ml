@@ -722,6 +722,9 @@ let of_string ~dir ?(filename="default.xml") string=
   }
 
 let rec god_flatten ?(pos_ratio=pos_ratio_default) god=
+  match god.transform with
+  | MirrorHorizontal | MirrorVertical | Rotate180-> invalid_arg "transform"
+  | NoTransform->
   let elements= ListLabels.map
     god.elements
     ~f:(fun element->
@@ -1039,10 +1042,10 @@ let outline_svg_of_god ~stroke_glyph god=
   in
   match god.version_major, god.version_minor with
   | (1, 0) ->
-    let asvg= svg_of_god ~indent:2 god in
+    let svg_str= svg_of_god ~indent:2 god in
     sprintf
       "<svg viewBox=\"0,0 %d,%d\" xmlns=\"http://www.w3.org/2000/svg\">\n%s\n</svg>"
-      size.width size.height asvg
+      size.width size.height svg_str
   | _-> failwith (sprintf "outline_svg_of_god %d %d" god.version_major god.version_minor)
 
 let animate_svg_of_god ~stroke_animate god=
@@ -1134,10 +1137,10 @@ let animate_svg_of_god ~stroke_animate god=
   in
   match god.version_major, god.version_minor with
   | (1, 0) ->
-    let _, asvg= animate_svg_of_god ~indent:2 god in
+    let _, svg_str= animate_svg_of_god ~indent:2 god in
     sprintf
       "<svg viewBox=\"0,0 %d,%d\" xmlns=\"http://www.w3.org/2000/svg\">\n%s\n</svg>"
-      size.width size.height asvg
+      size.width size.height svg_str
   | _-> failwith (sprintf "animate_svg_of_god %d %d" god.version_major god.version_minor)
 
 type glif_of_god=
