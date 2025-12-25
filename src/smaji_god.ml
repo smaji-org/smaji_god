@@ -15,6 +15,8 @@ module Glif= Smaji_glyph_path.Glif
 
 open Printf
 
+let string_of_float= Smaji_glyph_path.Utils.string_of_float
+
 (*
 let read_all path=
   let chan= In_channel.open_text path in
@@ -987,7 +989,7 @@ let outline_svg_of_god ~stroke_glyph god=
               |> List.map (Animate.Svg.Svg_path.to_string_svg ~indent:(indent+6))
               |> String.concat "\n"
             in
-            sprintf "%s<path d=\"%s\"\n%s/>" indent_str2 paths_svg indent_str2
+            sprintf "%s<path d=\"\n%s\"\n%s/>" indent_str2 paths_svg indent_str2
           in
           sprintf "%s<g %s>\n%s\n%s</g>"
             indent_str1 transform
