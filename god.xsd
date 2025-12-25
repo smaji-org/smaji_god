@@ -55,10 +55,6 @@
   <xs:attribute name="height" type="frameSizeAttrType" use="required"/>
 </xs:attributeGroup>
 
-<xs:complexType name="alias">
-  <xs:attribute name="unicode" type="unicode" use="required"/>
-</xs:complexType>
-
 <xs:complexType name="ref">
   <xs:attribute name="unicode" type="unicode" use="required"/>
   <xs:attributeGroup ref="frameAttrs" />
@@ -223,7 +219,6 @@
   <xs:complexType>
     <xs:choice>
       <xs:element name="glyph" type="glyph"/>
-      <xs:element name="alias" type="alias"/>
     </xs:choice>
     <xs:attribute name="version" type="xs:string" use="required"/>
   </xs:complexType>
