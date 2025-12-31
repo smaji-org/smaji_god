@@ -226,7 +226,7 @@
   <xs:complexType>
     <xs:sequence>
       <xs:element name="glyph" type="glyph"/>
-      <xs:element name="comment" type="comment"/>
+      <xs:element name="comment" type="comment" minOccurs="0"/>
     </xs:sequence>
     <xs:attribute name="version" type="xs:string" use="required"/>
   </xs:complexType>

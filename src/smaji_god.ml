@@ -479,6 +479,7 @@ module Raw = struct
     code_point: code_point;
     transform: transform;
     elements: element list;
+    comment: string;
   }
 
   let get_stroke attrs=
@@ -566,8 +567,39 @@ module Raw = struct
       }
     | _-> failwith "get_character"
 
-  let of_xml_nodes nodes=
-    let attrs, god= Ezxmlm.member_with_attr "god" nodes in
+  module EzxmlmFix = struct
+    include Ezxmlm
+
+    let from_channel chan =
+      let i = Xmlm.make_input (`Channel chan) in
+      let (dtd,doc) = from_input i in
+      (dtd, doc)
+
+    let from_string buf =
+      let i = Xmlm.make_input (`String (0,buf)) in
+      let (dtd,doc) = from_input i in
+      (dtd, doc)
+
+    let write_document mode ?(decl=false) ?(ns_prefix=(fun _-> Some "")) dtd doc =
+      let o = Xmlm.make_output ~decl ~ns_prefix mode in
+      to_output o (dtd, doc)
+
+    let _make_tag tag ?(ns="") (attrs,nodes) =
+      `El (((ns,tag),attrs),nodes)
+
+    let _to_channel chan ?(decl=false) dtd doc =
+      write_document (`Channel chan) ~decl dtd doc
+
+    let to_string ?(decl=false) ?dtd doc =
+      let buf = Buffer.create 512 in
+      write_document (`Buffer buf) ~decl dtd doc;
+      Buffer.contents buf
+
+    let _pp fmt doc = Format.pp_print_string fmt (to_string doc)
+  end
+
+  let of_xml_node node=
+    let attrs, god= Ezxmlm.member_with_attr "god" [node] in
     let (version_major, version_minor)= attrs |> Ezxmlm.get_attr "version" |> version_of_string in
     let attrs, glyph= Ezxmlm.member_with_attr "glyph" god in
     let code_point= attrs |> Ezxmlm.get_attr "unicode" |> code_point_of_string in
@@ -584,23 +616,28 @@ module Raw = struct
       | `Data _-> None)
       glyph
     in
+    let comment=
+      match Ezxmlm.member_with_attr "comment" god with
+      | tag-> tag |> EzxmlmFix.make_tag "comment" |> EzxmlmFix.to_string
+      | exception Ezxmlm.Tag_not_found _-> ""
+    in
     {
       version_major;
       version_minor;
       code_point;
       transform;
       elements;
+      comment;
     }
 
-
   let of_string string=
-    let _dtd, nodes= Ezxmlm.from_string string in
-    of_xml_nodes nodes
+    let _dtd, node= EzxmlmFix.from_string string in
+    of_xml_node node
 
   let load_file path=
     In_channel.with_open_text path @@ fun chan->
-    let _dtd, nodes= Ezxmlm.from_channel chan in
-    of_xml_nodes nodes
+    let _dtd, node= EzxmlmFix.from_channel chan in
+    of_xml_node node
 
 end
 
@@ -610,6 +647,7 @@ type god= {
   code_point: code_point;
   transform: transform;
   elements: element list;
+  comment: string;
 }
 and subgod= { god: god ; frame: frame }
 and element=
@@ -706,6 +744,7 @@ let rec load_file ~dir ?(filename="default.xml") code_point=
     code_point= god_raw.code_point;
     transform= god_raw.transform;
     elements;
+    comment= god_raw.comment;
   }
 
 let of_string ~dir ?(filename="default.xml") string=
@@ -721,6 +760,7 @@ let of_string ~dir ?(filename="default.xml") string=
     code_point= god_raw.code_point;
     transform= god_raw.transform;
     elements;
+    comment= god_raw.comment;
   }
 
 let rec god_flatten ?(pos_ratio=pos_ratio_default) god=

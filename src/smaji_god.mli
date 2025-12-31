@@ -180,6 +180,7 @@ type god = {
   code_point : code_point; (** unicode code point *)
   transform : transform; (** applied transform *)
   elements : element list; (** consists of the elements *)
+  comment : string; (** comment *)
 }
 
 (** The type of subgod. *)
