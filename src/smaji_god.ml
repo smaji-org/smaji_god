@@ -13,6 +13,37 @@ module Animate = Animate
 module Svg= Smaji_glyph_path.Svg
 module Glif= Smaji_glyph_path.Glif
 
+module EzxmlmFix = struct
+  include Ezxmlm
+
+  let from_channel chan =
+    let i = Xmlm.make_input (`Channel chan) in
+    let (dtd,doc) = from_input i in
+    (dtd, doc)
+
+  let from_string buf =
+    let i = Xmlm.make_input (`String (0,buf)) in
+    let (dtd,doc) = from_input i in
+    (dtd, doc)
+
+  let write_document mode ?(decl=false) ?(ns_prefix=(fun _-> Some "")) dtd doc =
+    let o = Xmlm.make_output ~decl ~ns_prefix mode in
+    to_output o (dtd, doc)
+
+  let _make_tag tag ?(ns="") (attrs,nodes) =
+    `El (((ns,tag),attrs),nodes)
+
+  let _to_channel chan ?(decl=false) dtd doc =
+    write_document (`Channel chan) ~decl dtd doc
+
+  let to_string ?(decl=false) ?dtd doc =
+    let buf = Buffer.create 512 in
+    write_document (`Buffer buf) ~decl dtd doc;
+    Buffer.contents buf
+
+  let _pp fmt doc = Format.pp_print_string fmt (to_string doc)
+end
+
 open Printf
 
 let string_of_float= Smaji_glyph_path.Utils.string_of_float
@@ -567,37 +598,6 @@ module Raw = struct
       }
     | _-> failwith "get_character"
 
-  module EzxmlmFix = struct
-    include Ezxmlm
-
-    let from_channel chan =
-      let i = Xmlm.make_input (`Channel chan) in
-      let (dtd,doc) = from_input i in
-      (dtd, doc)
-
-    let from_string buf =
-      let i = Xmlm.make_input (`String (0,buf)) in
-      let (dtd,doc) = from_input i in
-      (dtd, doc)
-
-    let write_document mode ?(decl=false) ?(ns_prefix=(fun _-> Some "")) dtd doc =
-      let o = Xmlm.make_output ~decl ~ns_prefix mode in
-      to_output o (dtd, doc)
-
-    let _make_tag tag ?(ns="") (attrs,nodes) =
-      `El (((ns,tag),attrs),nodes)
-
-    let _to_channel chan ?(decl=false) dtd doc =
-      write_document (`Channel chan) ~decl dtd doc
-
-    let to_string ?(decl=false) ?dtd doc =
-      let buf = Buffer.create 512 in
-      write_document (`Buffer buf) ~decl dtd doc;
-      Buffer.contents buf
-
-    let _pp fmt doc = Format.pp_print_string fmt (to_string doc)
-  end
-
   let of_xml_node node=
     let attrs, god= Ezxmlm.member_with_attr "god" [node] in
     let (version_major, version_minor)= attrs |> Ezxmlm.get_attr "version" |> version_of_string in
@@ -1085,9 +1085,20 @@ let outline_svg_of_god ~stroke_glyph god=
   match god.version_major, god.version_minor with
   | (1, 0) ->
     let svg_str= svg_of_god ~indent:2 god in
+    let comment=
+      match god.comment with ""-> "" | comment->
+      let _dtd, comment= EzxmlmFix.from_string comment in
+      match EzxmlmFix.member_with_attr "comment" [comment] with
+      | _, comment->
+        (match EzxmlmFix.member_with_attr "svg" comment with
+        | _, subnodes->
+          subnodes |> List.map EzxmlmFix.to_string |> String.concat ""
+        | exception _-> "")
+      | exception _-> ""
+    in
     sprintf
-      "<svg viewBox=\"0,0 %d,%d\" xmlns=\"http://www.w3.org/2000/svg\">\n%s\n</svg>"
-      size.width size.height svg_str
+      "<svg viewBox=\"0,0 %d,%d\" xmlns=\"http://www.w3.org/2000/svg\">\n%s\n%s</svg>"
+      size.width size.height svg_str comment
   | _-> failwith (sprintf "outline_svg_of_god %d %d" god.version_major god.version_minor)
 
 let animate_svg_of_god ~stroke_animate god=
