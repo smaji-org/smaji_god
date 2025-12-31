@@ -215,11 +215,19 @@
   <xs:attribute name="transform" type="transform" use="optional"/>
 </xs:complexType>
 
+<xs:complexType name="comment" mixed="true">
+  <xs:choice minOccurs="0" maxOccurs="unbounded">
+    <xs:any processContents="lax"/>
+  </xs:choice>
+  <xs:anyAttribute processContents="lax"/>
+</xs:complexType>
+
 <xs:element name="god">
   <xs:complexType>
-    <xs:choice>
+    <xs:sequence>
       <xs:element name="glyph" type="glyph"/>
-    </xs:choice>
+      <xs:element name="comment" type="comment"/>
+    </xs:sequence>
     <xs:attribute name="version" type="xs:string" use="required"/>
   </xs:complexType>
 </xs:element>
