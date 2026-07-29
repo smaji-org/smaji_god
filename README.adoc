@@ -59,7 +59,7 @@ http://cjkv.smaji.org/xml/1.0/xsd/god.xsd
 |Yes
 
 |transform
-|can be "mirror_horizontal", "mirror_vertical" or "rotate180", the entire glyph is transformed according to the value 
+|can be "mirror_horizontal", "mirror_vertical" or "rotate180", the entire glyph is transformed according to the value
 |No
 
 |===

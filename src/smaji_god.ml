@@ -9,6 +9,10 @@
  *)
 
 
+open! Smaji_glyph_path.Bugfix
+
+open Smaji_glyph_path.Utils
+open Utils
 module Animate = Animate
 module Svg= Smaji_glyph_path.Svg
 module Glif= Smaji_glyph_path.Glif
@@ -46,7 +50,6 @@ end
 
 open Printf
 
-let string_of_float= Smaji_glyph_path.Utils.string_of_float
 
 (*
 let read_all path=
@@ -80,35 +83,35 @@ type outline_type=
   | Outline_svg
   | Outline_glif
 
-type frame= {
+type frame_i= {
   x: int;
   y: int;
   width: int;
   height: int;
 }
 
-type frame_f= {
+type frame= {
   x: float;
   y: float;
   width: float;
   height: float;
 }
 
-let frame_to_frame_f (frame:frame)= {
+let frame_of_frame_i (frame:frame_i)= {
   x= float_of_int frame.x;
   y= float_of_int frame.y;
   width= float_of_int frame.width;
   height= float_of_int frame.height;
 }
 
-let frame_of_frame_f frame: frame= {
+let frame_to_frame_i: frame -> frame_i= fun frame -> {
   x= int_of_float frame.x;
   y= int_of_float frame.y;
   width= int_of_float frame.width;
   height= int_of_float frame.height;
 }
 
-let string_of_frame (frame:frame)= sprintf "{x: %d; y: %d; width: %d; height: %d}"
+let string_of_frame (frame:frame_i)= sprintf "{x: %d; y: %d; width: %d; height: %d}"
   frame.x
   frame.y
   frame.width
@@ -139,15 +142,15 @@ let pos_ratio_adjust_f ~pos_ratio frame_f=
   { x; y; width; height }
 
 let pos_ratio_adjust ~pos_ratio frame=
-  let frame_f= frame_to_frame_f frame in
+  let frame_f= frame_of_frame_i frame in
   let x= frame_f.x *. pos_ratio.ratio.ratio_x +. pos_ratio.pos.pos_x
   and y= frame_f.y *. pos_ratio.ratio.ratio_y +. pos_ratio.pos.pos_y
   and width= frame_f.width *. pos_ratio.ratio.ratio_x
   and height= frame_f.height *. pos_ratio.ratio.ratio_y in
-  frame_of_frame_f { x; y; width; height }
+  frame_to_frame_i { x; y; width; height }
 
-type size= { width: int; height: int }
-type size_f= { width: float; height: float }
+type size_i= { width: int; height: int }
+type size= { width: float; height: float }
 
 type code_point= int * int
 
@@ -429,18 +432,18 @@ let version_of_string str=
   | c::_-> (int_of_string c,0)
   | []-> failwith "version_of_string"
 
-type stroke_f= {
-  frame_f: frame_f;
-  stroke_type: stroke_type;
-}
-
 type stroke= {
   frame: frame;
   stroke_type: stroke_type;
 }
 
-let to_stroke_f stroke= {
-  frame_f= frame_to_frame_f stroke.frame;
+type stroke_i= {
+  frame_i: frame_i;
+  stroke_type: stroke_type;
+}
+
+let of_stroke_i stroke= {
+  frame= frame_of_frame_i stroke.frame_i;
   stroke_type= stroke.stroke_type;
 }
 
@@ -481,7 +484,7 @@ let reduce_transforms l=
 module Raw = struct
   type ref= {
     code_point: code_point;
-    frame: frame;
+    frame: frame_i;
   }
 
   type stroke_unknown= {
@@ -501,7 +504,7 @@ module Raw = struct
   }
 
   type element=
-    | Stroke of stroke
+    | Stroke of stroke_i
     | Ref of ref
 
   type god= {
@@ -534,10 +537,10 @@ module Raw = struct
         width= Some width;
         height= Some height;
       }->
-      let frame:frame= { x; y; width; height; } in
+      let frame_i:frame_i= { x; y; width; height; } in
       {
         stroke_type;
-        frame;
+        frame_i;
       }
     | _-> failwith "get_stroke"
 
@@ -563,7 +566,7 @@ module Raw = struct
         width= Some width;
         height= Some height;
       }->
-      let frame:frame= { x; y; width; height; } in
+      let frame:frame_i= { x; y; width; height; } in
       {
         code_point;
         frame;
@@ -591,7 +594,7 @@ module Raw = struct
         width= Some width;
         height= Some height;
       }->
-      let frame:frame= { x; y; width; height; } in
+      let frame:frame_i= { x; y; width; height; } in
       {
         code_point;
         frame;
@@ -635,7 +638,7 @@ module Raw = struct
     of_xml_node node
 
   let load_file path=
-    In_channel.with_open_text path @@ fun chan->
+    in_channel_with_open_text path @@ fun chan->
     let _dtd, node= EzxmlmFix.from_channel chan in
     of_xml_node node
 
@@ -649,12 +652,12 @@ type god= {
   elements: element list;
   comment: string;
 }
-and subgod= { god: god ; frame: frame }
+and subgod= { god: god ; frame: frame_i }
 and element=
-  | Stroke of stroke
+  | Stroke of stroke_i
   | SubGod of subgod
 
-let god_frame god: frame=
+let god_frame god: frame_i=
   let (nx, ny, px, py)=
     match god.elements with
     | []-> (0,0,0,0)
@@ -662,7 +665,7 @@ let god_frame god: frame=
       let init =
         let frame=
           match head with
-          | Stroke stroke-> stroke.frame
+          | Stroke stroke-> stroke.frame_i
           | SubGod subgod-> subgod.frame
         in
         (frame.x, frame.y, frame.width, frame.height)
@@ -672,7 +675,7 @@ let god_frame god: frame=
         ~f:(fun (nx, ny, px, py) element->
           let frame=
             match element with
-            | Stroke stroke-> stroke.frame
+            | Stroke stroke-> stroke.frame_i
             | SubGod subgod-> subgod.frame
           in
           (
@@ -695,13 +698,13 @@ let god_frame god: frame=
   in
   { x; y; width; height }
 
-let calc_size god: size=
+let calc_size god: size_i=
   let frame= god_frame god in
   let width= frame.width
   and height= frame.height in
   { width; height }
 
-let calc_size_f god: size_f=
+let calc_size_f god: size=
   let size= calc_size god in
   let width= float_of_int size.width
   and height= float_of_int size.height in
@@ -709,7 +712,7 @@ let calc_size_f god: size_f=
 
 let string_of_stroke stroke=
   let stroke_type= string_of_stroke_type stroke.stroke_type
-  and frame= string_of_frame stroke.frame in
+  and frame= string_of_frame stroke.frame_i in
   sprintf "{ %s; %s }" stroke_type frame
 
 let rec string_of_god ?(indent=0) god=
@@ -772,12 +775,12 @@ let rec god_flatten ?(pos_ratio=pos_ratio_default) god=
     ~f:(fun element->
       match element with
       | Stroke stroke->
-        let frame= stroke.frame
-          |> frame_to_frame_f
+        let frame_i= stroke.frame_i
+          |> frame_of_frame_i
           |> pos_ratio_adjust_f ~pos_ratio
-          |> frame_of_frame_f
+          |> frame_to_frame_i
         in
-        [ { stroke with frame } ]
+        [ { stroke with frame_i } ]
       | SubGod subgod->
         let size= calc_size_f subgod.god in
         let ratio= {
@@ -949,13 +952,13 @@ let convert_to_glif_glyphs glyphs=
 let svg_of_stroke ~stroke_glyph stroke=
   let svg: Svg.t= StrokeMap.find stroke.stroke_type stroke_glyph in
   let x=
-    (float_of_int stroke.frame.width) /.
+    (float_of_int stroke.frame_i.width) /.
     svg.viewBox.width
   and y=
-    (float_of_int stroke.frame.height) /.
+    (float_of_int stroke.frame_i.height) /.
     svg.viewBox.height
-  and dx= float_of_int stroke.frame.x
-  and dy= float_of_int stroke.frame.y in
+  and dx= float_of_int stroke.frame_i.x
+  and dy= float_of_int stroke.frame_i.y in
   svg
     |> Smaji_glyph_path.Svg.Adjust.scale ~x ~y
     |> Smaji_glyph_path.Svg.Adjust.translate ~dx ~dy
@@ -969,13 +972,13 @@ let animate_of_stroke ~stroke_animate stroke=
     StrokeMap.find stroke.stroke_type stroke_animate in
   let svg= animate.svg in
   let x=
-    (float_of_int stroke.frame.width) /.
+    (float_of_int stroke.frame_i.width) /.
     svg.viewBox.width
   and y=
-    (float_of_int stroke.frame.height) /.
+    (float_of_int stroke.frame_i.height) /.
     svg.viewBox.height
-  and dx= float_of_int stroke.frame.x
-  and dy= float_of_int stroke.frame.y in
+  and dx= float_of_int stroke.frame_i.x
+  and dy= float_of_int stroke.frame_i.y in
   animate
     |> Animate.Adjust.scale ~x ~y
     |> Animate.Adjust.translate ~dx ~dy
@@ -1005,10 +1008,10 @@ let outline_svg_of_god ~stroke_glyph god=
         match element with
         | Stroke stroke->
           let godSvg:Svg.t= StrokeMap.find stroke.stroke_type stroke_glyph in
-          let dx= float_of_int stroke.frame.x -. godSvg.viewBox.min_x
-          and dy= float_of_int stroke.frame.y -. godSvg.viewBox.min_y
-          and rx= float_of_int stroke.frame.width /. godSvg.viewBox.width
-          and ry= float_of_int stroke.frame.height /. godSvg.viewBox.height in
+          let dx= float_of_int stroke.frame_i.x -. godSvg.viewBox.min_x
+          and dy= float_of_int stroke.frame_i.y -. godSvg.viewBox.min_y
+          and rx= float_of_int stroke.frame_i.width /. godSvg.viewBox.width
+          and ry= float_of_int stroke.frame_i.height /. godSvg.viewBox.height in
           let translate=
             if dx <> 0. || dy <> 0.
             then sprintf "translate(%s %s)" (string_of_float dx) (string_of_float dy)
@@ -1106,16 +1109,16 @@ let animate_svg_of_god ~stroke_animate god=
   let rec animate_svg_of_god ?(id=0) ?(time=0.) ?(indent=0) god=
     let indent_str0= String.make indent ' '
     and indent_str1= String.make (indent+2) ' ' in
-    let (next_id, next_time), elements= ListLabels.fold_left_map god.elements
+    let (next_id, next_time), elements= list_fold_left_map god.elements
       ~init:(id,time)
       ~f:(fun (id,time) element->
         match element with
         | Stroke stroke->
           let godAnimate:Animate.t= StrokeMap.find stroke.stroke_type stroke_animate in
-          let dx= float_of_int stroke.frame.x -. godAnimate.svg.viewBox.min_x
-          and dy= float_of_int stroke.frame.y -. godAnimate.svg.viewBox.min_y
-          and rx= float_of_int stroke.frame.width /. godAnimate.svg.viewBox.width
-          and ry= float_of_int stroke.frame.height /. godAnimate.svg.viewBox.height in
+          let dx= float_of_int stroke.frame_i.x -. godAnimate.svg.viewBox.min_x
+          and dy= float_of_int stroke.frame_i.y -. godAnimate.svg.viewBox.min_y
+          and rx= float_of_int stroke.frame_i.width /. godAnimate.svg.viewBox.width
+          and ry= float_of_int stroke.frame_i.height /. godAnimate.svg.viewBox.height in
           let translate=
             if dx <> 0. || dy <> 0.
             then sprintf "translate(%s %s)" (string_of_float dx) (string_of_float dy)
@@ -1218,10 +1221,10 @@ let outline_glif_of_god ~stroke_glyph god=
       match element with
       | Stroke stroke->
         let godGlif:Glif.t= StrokeMap.find stroke.stroke_type stroke_glyph in
-        let dx= float_of_int stroke.frame.x
-        and dy= float_of_int stroke.frame.y
-        and rx= float_of_int stroke.frame.width /. godGlif.advance.width
-        and ry= float_of_int stroke.frame.height /. godGlif.advance.height in
+        let dx= float_of_int stroke.frame_i.x
+        and dy= float_of_int stroke.frame_i.y
+        and rx= float_of_int stroke.frame_i.width /. godGlif.advance.width
+        and ry= float_of_int stroke.frame_i.height /. godGlif.advance.height in
           Glif.Component
           Glif.{
             base= Some ("stroke/" ^ string_of_stroke_type stroke.stroke_type);

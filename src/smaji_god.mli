@@ -22,19 +22,19 @@ type outline_type =
   | Outline_glif
 (** The type of a outline, svg and glif are currently supported. *)
 
-type frame = { x : int; y : int; width : int; height : int; }
+type frame_i = { x : int; y : int; width : int; height : int; }
 (** Frame described in integer *)
 
-type frame_f = { x : float; y : float; width : float; height : float; }
+type frame = { x : float; y : float; width : float; height : float; }
 (** Frame described in float *)
 
-val frame_to_frame_f : frame -> frame_f
-(** Convert from frame to frame_f *)
+val frame_to_frame_i : frame -> frame_i
+(** Convert from frame to frame_i *)
 
-val frame_of_frame_f : frame_f -> frame
-(** Convert to frame from frame_f *)
+val frame_of_frame_i : frame_i -> frame
+(** Convert to frame from frame_i *)
 
-val string_of_frame : frame -> string
+val string_of_frame : frame_i -> string
 (** Return the string representation of frame *)
 
 type pos = { pos_x : float; pos_y : float; }
@@ -49,16 +49,16 @@ type pos_ratio = { pos : pos; ratio : ratio; }
 val pos_ratio_default : pos_ratio
 (** The default value of pos_ratio, that is, pos (0,0) and ratio (1,1) *)
 
-val pos_ratio_adjust_f : pos_ratio:pos_ratio -> frame_f -> frame_f
+val pos_ratio_adjust_f : pos_ratio:pos_ratio -> frame -> frame
 (** Adjust frame_f with the given pos_ratio *)
 
-val pos_ratio_adjust : pos_ratio:pos_ratio -> frame -> frame
+val pos_ratio_adjust : pos_ratio:pos_ratio -> frame_i -> frame_i
 (** Adjust frame with the given pos_ratio *)
 
-type size = { width : int; height : int; }
+type size_i = { width : int; height : int; }
 (** The type of size *)
 
-type size_f = { width : float; height : float; }
+type size = { width : float; height : float; }
 (** The type of size *)
 
 type code_point = int * int
@@ -148,13 +148,13 @@ val code_point_of_utf8 : string -> int * int
 val version_of_string : string -> int * int
 (** Return the god version from its string representation *)
 
-type stroke_f = { frame_f : frame_f; stroke_type : stroke_type; }
+type stroke = { frame : frame; stroke_type : stroke_type; }
 (** The type of stroke included in frame_f *)
 
-type stroke = { frame : frame; stroke_type : stroke_type; }
+type stroke_i = { frame_i : frame_i; stroke_type : stroke_type; }
 (** The type of stroke included in frame *)
 
-val to_stroke_f : stroke -> stroke_f
+val of_stroke_i : stroke_i -> stroke
 (** Return the stroke_f version of the storke *)
 
 (* The type of transform *)
@@ -186,22 +186,22 @@ type god = {
 (** The type of subgod. *)
 and subgod = {
   god : god; (** subgod *)
-  frame : frame; (** and its frame *)
+  frame : frame_i; (** and its frame *)
 }
 
 (** The type of element in god. A god can consists of strokes and/or sub gods. *)
-and element = Stroke of stroke | SubGod of subgod
+and element = Stroke of stroke_i | SubGod of subgod
 
-val god_frame : god -> frame
+val god_frame : god -> frame_i
 (** Calculate the frame of the god. *)
 
-val calc_size : god -> size
+val calc_size : god -> size_i
 (** Calculate the frame size of the god in integer. *)
 
-val calc_size_f : god -> size_f
+val calc_size_f : god -> size
 (** Calculate the frame size of the god in float. *)
 
-val string_of_stroke : stroke -> string
+val string_of_stroke : stroke_i -> string
 (** Return the string representation of the stroke *)
 
 val string_of_element : ?indent:int -> element -> string
@@ -216,7 +216,7 @@ val of_string : dir:string -> ?filename:string -> string -> god
 val load_file : dir:string -> ?filename:string -> code_point -> god
 (** [load_file ~dir ?filename (core,variation)] loads [dir]/core/variation/[filename] then parses and returns a god, the [filename] is "default.xml" if is not specified. Because a god can reference other god as element, so the file hierarchy in [dir] is hierarchically structured. *)
 
-val god_flatten : ?pos_ratio:pos_ratio -> god -> stroke list
+val god_flatten : ?pos_ratio:pos_ratio -> god -> stroke_i list
 (** [god_flatten ?pos_ratio god] flattens the structured into a list of storkes, transformed by pos_ratio *)
 
 (** Module Map with stroke_type as type key *)
@@ -232,20 +232,20 @@ val convert_to_glif_glyphs : Svg.t StrokeMap.t -> Glif.t StrokeMap.t
 
 (** Return the svg part of the stroke *)
 val svg_of_stroke :
-  stroke_glyph:Svg.t StrokeMap.t -> stroke -> Svg.t
+  stroke_glyph:Svg.t StrokeMap.t -> stroke_i -> Svg.t
 
 (** Return the paths of the svg part of the stroke *)
 val paths_of_stroke :
   stroke_glyph:Svg.t StrokeMap.t ->
-  stroke -> Animate.Path.t list
+  stroke_i -> Animate.Path.t list
 
 (** Return the animate part of the stroke *)
 val animate_of_stroke :
-  stroke_animate:Animate.t StrokeMap.t -> stroke -> Animate.t
+  stroke_animate:Animate.t StrokeMap.t -> stroke_i -> Animate.t
 
 (** Return the animation masks of the stroke *)
 val animations_of_stroke :
-  stroke_animate:Animate.t StrokeMap.t -> stroke -> Rect.animation list
+  stroke_animate:Animate.t StrokeMap.t -> stroke_i -> Rect.animation list
 
 (** Return the svg outline of the god. Note: this function only works with god without any transformed Components inside, or an Invalid_argument exception is raised *)
 val svg_of_god :

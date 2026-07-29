@@ -5,6 +5,5 @@
   (public_name smaji_god)
   (libraries smaji_glyph_path)
   (flags (:standard -safe-string))
-  (preprocess (pps ppx_pipebang))
   )
 

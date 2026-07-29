@@ -8,6 +8,7 @@
  * This file is a part of Smaji_god.
  *)
 
+open! Smaji_glyph_path.Bugfix
 module Svg= Smaji_glyph_path.Svg
 module Path= Svg.Svg_path
 module ViewBox= Svg.ViewBox
