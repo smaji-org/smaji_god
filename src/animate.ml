@@ -8,6 +8,7 @@
  * This file is a part of Smaji_god.
  *)
 
+open! Smaji_glyph_path.Bugfix
 module Svg= Smaji_glyph_path.Svg
 module Path= Svg.Svg_path
 module ViewBox= Svg.ViewBox
@@ -118,7 +119,7 @@ module Adjust = struct
       and min_y= frame.y in
       let viewBox= ViewBox.{ min_x; min_y; width; height } in
       let svg= { svg with viewBox } in
-      { t with svg } |> reset_viewBox
+      { t with svg }
 
   let scale ~x ~y t=
     let svg= t.svg in

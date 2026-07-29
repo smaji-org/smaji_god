@@ -33,8 +33,15 @@ val load_file_exn : string -> t
 module Adjust :
   sig
     val reset_viewBox : t -> t
+    (** Reset the viewBox to make the min_x and min_y to zero, the content will also be translated so the view region looks still the same, e.g. the viewBox is {10,10, 100,100}(min_x, min_y, width, height), after [reset_viewBox], the viwBox will be {0,0, 100,100} and the content will be translated by {-10,-10}, so that the view region looks the same after [reset_viewBox]. *)
+
     val fit_frame : t -> t
+    (** Calculate the minimum required frame needed by the content, so that [width] and [height] of [t] are minimized. *)
+
     val scale : x:float -> y:float -> t -> t
+    (** Do what the function name says, i.e. scale it. *)
+
     val translate : dx:float -> dy:float -> t -> t
+    (** Do what the function name says, i.e. translate it. *)
   end
 
