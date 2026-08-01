@@ -28,6 +28,22 @@ type frame = { x : float; y : float; width : float; height : float; }
 val string_of_frame : frame -> string
 (** Return the string representation of frame *)
 
+(* The type of transform *)
+type transform =
+  | NoTransform
+  | MirrorHorizontal
+  | MirrorVertical
+  | Rotate180
+
+val transform_of_string : string -> transform
+(** Return the transform from its string representation *)
+
+val string_of_transform : transform -> string
+(** Return the transform from its string representation *)
+
+val reduce_transforms : transform list -> transform list
+(** Return the reduced list from the transform list, remove all unnecessary transforms *)
+
 type pos = { pos_x : float; pos_y : float; }
 (** The type of position *)
 
@@ -36,6 +52,12 @@ type ratio = { ratio_x : float; ratio_y : float; }
 
 type pos_ratio = { pos : pos; ratio : ratio; }
 (** The type of position and ratio *)
+
+type pos_ratio_transform= {
+  pos: pos;
+  ratio: ratio;
+  transform: transform;
+}
 
 val pos_ratio_default : pos_ratio
 (** The default value of pos_ratio, that is, pos (0,0) and ratio (1,1) *)
@@ -133,26 +155,17 @@ val code_point_of_utf8 : string -> int * int
 val version_of_string : string -> int * int
 (** Return the god version from its string representation *)
 
-type stroke = { frame : frame; stroke_type : stroke_type; }
-(** The type of stroke included in frame_f *)
+type stroke = {
+  stroke_type : stroke_type;
+  frame : frame;
+  transform: transform;
+}
+(** The type of stroke *)
 
-(* The type of transform *)
-type transform =
-  | NoTransform
-  | MirrorHorizontal
-  | MirrorVertical
-  | Rotate180
-
-val transform_of_string : string -> transform
-(** Return the transform from its string representation *)
-
-val string_of_transform : transform -> string
-(** Return the transform from its string representation *)
-
-val reduce_transforms : transform list -> transform list
-(** Return the reduced list from the transform list, remove all unnecessary transforms *)
-
-(** The type of god. *)
+(** The type of god.
+  There are no min_x, min_y, width, height fields in the type definition.
+  [god_frame god] returns these information when is needed.
+ *)
 type god = {
   version_major : int; (** major version *)
   version_minor : int; (** minor version *)
@@ -165,17 +178,21 @@ type god = {
 (** The type of subgod. *)
 and subgod = {
   god : god; (** subgod *)
-  frame : frame; (** and its frame *)
+  frame : frame; (** and its frame where to place it in the current container *)
 }
 
 (** The type of element in god. A god can consists of strokes and/or sub gods. *)
 and element = Stroke of stroke | SubGod of subgod
 
-val god_frame : god -> frame
-(** Calculate the frame of the god. *)
+val god_bestfit : god -> frame
+(** Calculate the bestfit frame of the god. i.e. the frame is minimum to contain all content of the god.
+  This function is not used within this library. It's provided for potential user analysis of god data. *)
 
-val calc_size : god -> size
-(** Calculate the frame size of the god in float. *)
+val god_frame : god -> frame
+(** Calculate the frame of the god. same as god_bestfit, except that [min_x] and [min_y] are both zero, or in rare case less than zero if the god is deliberatly constructed as that. *)
+
+val frame_size : frame -> size
+(** Calculate the frame size. *)
 
 val string_of_stroke : stroke -> string
 (** Return the string representation of the stroke *)
@@ -192,7 +209,7 @@ val of_string : dir:string -> ?filename:string -> string -> god
 val load_file : dir:string -> ?filename:string -> code_point -> god
 (** [load_file ~dir ?filename (core,variation)] loads [dir]/core/variation/[filename] then parses and returns a god, the [filename] is "default.xml" if is not specified. Because a god can reference other god as element, so the file hierarchy in [dir] is hierarchically structured. *)
 
-val god_flatten : ?pos_ratio:pos_ratio -> god -> stroke list
+val god_flatten : ?pos_ratio_transform:pos_ratio_transform -> god -> stroke list
 (** [god_flatten ?pos_ratio god] flattens the structured into a list of storkes, transformed by pos_ratio *)
 
 (** Module Map with stroke_type as type key *)
@@ -206,7 +223,7 @@ val load_animates : dir:string -> Animate.t StrokeMap.t
 
 val convert_to_glif_glyphs : Svg.t StrokeMap.t -> Glif.t StrokeMap.t
 
-(** Return the svg part of the stroke *)
+(** Return the svg part of the stroke. NOTE, stroke.transform is ignored for now. *)
 val svg_of_stroke :
   stroke_glyph:Svg.t StrokeMap.t -> stroke -> Svg.t
 
@@ -223,7 +240,7 @@ val animate_of_stroke :
 val animations_of_stroke :
   stroke_animate:Animate.t StrokeMap.t -> stroke -> Rect.animation list
 
-(** Return the svg outline of the god. Note: this function only works with god without any transformed Components inside, or an Invalid_argument exception is raised *)
+(** Return the svg outline of the god. *)
 val svg_of_god :
   stroke_glyph:Svg.t StrokeMap.t -> god -> Svg.t
 

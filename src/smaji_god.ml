@@ -96,29 +96,112 @@ let string_of_frame (frame:frame)= sprintf "{x: %s; y: %s; width: %s; height: %s
   (string_of_float frame.width)
   (string_of_float frame.height)
 
+type transform=
+  | NoTransform
+  | MirrorHorizontal
+  | MirrorVertical
+  | Rotate180
+
+let transform_of_string= function
+  | "" | "none"-> NoTransform
+  | "mirror_horizontal"-> MirrorHorizontal
+  | "mirror_vertical"-> MirrorVertical
+  | "rotate180"-> Rotate180
+  | _-> failwith "transform_of_string"
+let string_of_transform= function
+  | NoTransform-> "none"
+  | MirrorHorizontal-> "mirror_horizontal"
+  | MirrorVertical-> "mirror_vertical"
+  | Rotate180-> "rotate180"
+
+let reduce_transform t1 t2=
+  match t1, t2 with
+  | NoTransform, t2-> t2
+  | t1, NoTransform-> t1
+
+  | MirrorHorizontal, MirrorHorizontal-> NoTransform
+  | MirrorHorizontal, MirrorVertical-> Rotate180
+  | MirrorHorizontal, Rotate180-> MirrorVertical
+
+  | MirrorVertical, MirrorHorizontal-> Rotate180
+  | MirrorVertical, MirrorVertical-> NoTransform
+  | MirrorVertical, Rotate180-> MirrorHorizontal
+
+  | Rotate180, MirrorHorizontal-> MirrorVertical
+  | Rotate180, MirrorVertical-> MirrorHorizontal
+  | Rotate180, Rotate180-> NoTransform
+
+let reduce_transforms l=
+  let[@tail_mod_cons] rec reduce l=
+    match l with
+    | []-> []
+    | [_]-> l
+    | t1::t2::tl-> reduce (reduce_transform t1 t2 :: tl)
+  in
+  reduce l
+
 type pos= {
   pos_x: float;
   pos_y: float;
 }
+
 type ratio= {
   ratio_x: float;
   ratio_y: float;
 }
+
 type pos_ratio= {
   pos: pos;
   ratio: ratio;
 }
+
 let pos_ratio_default= {
   pos= {pos_x=0.;pos_y=0.};
   ratio= {ratio_x=1.;ratio_y=1.};
 }
 
-let pos_ratio_adjust ~pos_ratio frame_f=
-  let x= frame_f.x *. pos_ratio.ratio.ratio_x +. pos_ratio.pos.pos_x
-  and y= frame_f.y *. pos_ratio.ratio.ratio_y +. pos_ratio.pos.pos_y
-  and width= frame_f.width *. pos_ratio.ratio.ratio_x
-  and height= frame_f.height *. pos_ratio.ratio.ratio_y in
+type pos_ratio_transform= {
+  pos: pos;
+  ratio: ratio;
+  transform: transform;
+}
+
+let pos_ratio_transform_default= {
+  pos= {pos_x=0.;pos_y=0.};
+  ratio= {ratio_x=1.;ratio_y=1.};
+  transform= NoTransform;
+}
+
+let pos_ratio_adjust ~(pos_ratio:pos_ratio) frame=
+  let x= frame.x *. pos_ratio.ratio.ratio_x +. pos_ratio.pos.pos_x
+  and y= frame.y *. pos_ratio.ratio.ratio_y +. pos_ratio.pos.pos_y
+  and width= frame.width *. pos_ratio.ratio.ratio_x
+  and height= frame.height *. pos_ratio.ratio.ratio_y in
   { x; y; width; height }
+
+let pos_ratio_transform_adjust ~(pos_ratio_transform:pos_ratio_transform) ~container frame=
+  let pos= pos_ratio_transform.pos
+  and ratio= pos_ratio_transform.ratio
+  and transform= pos_ratio_transform.transform in
+  let x= frame.x *. ratio.ratio_x +. pos.pos_x
+  and y= frame.y *. ratio.ratio_y +. pos.pos_y
+  and width= frame.width *. ratio.ratio_x
+  and height= frame.height *. ratio.ratio_y in
+  let center_x= (container.x +. container.width) /. 2. in
+  let center_y= (container.y +. container.height) /. 2. in
+  match transform with
+  | NoTransform->
+    { x; y; width; height }
+  | MirrorHorizontal->
+    let x= center_x +. (center_x -. x) -. width in
+    { x; y; width; height }
+  | MirrorVertical->
+    let y= center_y +. (center_y -. y) -. height in
+    { x; y; width; height }
+  | Rotate180->
+    let x= center_x +. (center_x -. x) -. width in
+    let y= center_y +. (center_y -. y) -. height in
+    { x; y; width; height }
 
 type size= { width: float; height: float }
 
@@ -403,43 +486,10 @@ let version_of_string str=
   | []-> failwith "version_of_string"
 
 type stroke= {
-  frame: frame;
   stroke_type: stroke_type;
+  frame: frame;
+  transform: transform;
 }
-
-type transform=
-  | NoTransform
-  | MirrorHorizontal
-  | MirrorVertical
-  | Rotate180
-
-let transform_of_string= function
-  | "" | "none"-> NoTransform
-  | "mirror_horizontal"-> MirrorHorizontal
-  | "mirror_vertical"-> MirrorVertical
-  | "rotate180"-> Rotate180
-  | _-> failwith "transform_of_string"
-let string_of_transform= function
-  | NoTransform-> "none"
-  | MirrorHorizontal-> "mirror_horizontal"
-  | MirrorVertical-> "mirror_vertical"
-  | Rotate180-> "rotate180"
-
-let reduce_transforms l=
-  let[@tail_mod_cons] rec reduce l=
-    match l with
-    | []-> []
-    | [_]-> l
-    | MirrorHorizontal::MirrorHorizontal::tl-> reduce tl
-    | MirrorVertical::MirrorVertical::tl-> reduce tl
-    | Rotate180::Rotate180::tl-> reduce tl
-    | MirrorHorizontal::MirrorVertical::tl->
-      Rotate180::tl |> List.sort compare |> reduce
-    | MirrorVertical::MirrorHorizontal::tl->
-      Rotate180::tl |> List.sort compare |> reduce
-    | hd::tl-> hd :: reduce tl
-  in
-  l |> List.sort compare |> reduce
 
 module Raw = struct
   type ref= {
@@ -500,6 +550,7 @@ module Raw = struct
       let frame= { x; y; width; height; } in
       {
         stroke_type;
+        transform= NoTransform;
         frame;
       }
     | _-> failwith "get_stroke"
@@ -617,10 +668,10 @@ and element=
   | Stroke of stroke
   | SubGod of subgod
 
-let god_frame god: frame=
+let god_bestfit god: frame=
   let (nx, ny, px, py)=
     match god.elements with
-    | []-> (0.,0.,0.,0.)
+    | []-> (infinity,infinity,0.,0.)
     | head::elements->
       let init =
         let frame=
@@ -658,8 +709,40 @@ let god_frame god: frame=
   in
   { x; y; width; height }
 
-let calc_size god: size=
-  let frame= god_frame god in
+let god_frame god: frame=
+  let (nx, ny, px, py)=
+    match god.elements with
+    | []-> (0.,0.,0.,0.)
+    | elements->
+      ListLabels.fold_left elements
+        ~init:(0.,0.,0.,0.)
+        ~f:(fun (nx, ny, px, py) element->
+          let frame=
+            match element with
+            | Stroke stroke-> stroke.frame
+            | SubGod subgod-> subgod.frame
+          in
+          (
+            min nx frame.x,
+            min ny frame.y,
+            max px (frame.x+.frame.width),
+            max py (frame.y+.frame.height)
+          ))
+  in
+  let x= nx
+  and y= ny
+  and width= px -. nx
+  and height= py -. ny in
+  let width, height=
+    match god.transform with
+    | NoTransform
+    | MirrorHorizontal
+    | MirrorVertical
+    | Rotate180-> width, height
+  in
+  { x; y; width; height }
+
+let frame_size (frame:frame): size=
   let width= frame.width
   and height= frame.height in
   { width; height }
@@ -720,43 +803,46 @@ let of_string ~dir ?(filename="default.xml") string=
     comment= god_raw.comment;
   }
 
-let rec god_flatten ?(pos_ratio=pos_ratio_default) god=
-  match god.transform with
-  | MirrorHorizontal | MirrorVertical | Rotate180-> invalid_arg "transform"
-  | NoTransform->
+let rec god_flatten ?(pos_ratio_transform=pos_ratio_transform_default) god=
+  let pos= pos_ratio_transform.pos
+  and ratio= pos_ratio_transform.ratio
+  and transform= reduce_transform pos_ratio_transform.transform god.transform in
+  let pos_ratio= {
+    pos;
+    ratio;
+  } in
+  let container= pos_ratio_adjust ~pos_ratio (god_frame god) in
   let elements= ListLabels.map
     god.elements
     ~f:(fun element->
       match element with
       | Stroke stroke->
         let frame= stroke.frame
-          |> pos_ratio_adjust ~pos_ratio
+          |> pos_ratio_transform_adjust ~pos_ratio_transform ~container
         in
-        [ { stroke with frame } ]
+        [ { stroke with frame; transform } ]
       | SubGod subgod->
-        let size= calc_size subgod.god in
-        let ratio= {
+        let frame= god_frame subgod.god in
+        let size= frame_size frame in
+        let subgod_ratio= {
           ratio_x= subgod.frame.width /. size.width;
           ratio_y= subgod.frame.height /. size.height;
         } in
-        let ratio_final= {
-          ratio_x= ratio.ratio_x *. pos_ratio.ratio.ratio_x;
-          ratio_y= ratio.ratio_y *. pos_ratio.ratio.ratio_y;
+        let ratio_chain= {
+          ratio_x= subgod_ratio.ratio_x *. ratio.ratio_x;
+          ratio_y= subgod_ratio.ratio_y *. ratio.ratio_y;
         } in
-        let pos_x=
-          subgod.frame.x
-            *. pos_ratio.ratio.ratio_x
-            +. pos_ratio.pos.pos_x
-        and pos_y=
-          subgod.frame.y
-            *. pos_ratio.ratio.ratio_y
-            +. pos_ratio.pos.pos_y
-        in
-        let pos_ratio= {
-          pos= {pos_x; pos_y};
-          ratio= ratio_final;
+        let frame_chain= pos_ratio_transform_adjust ~pos_ratio_transform ~container frame in
+        let pos_chain:pos= {
+          pos_x= frame_chain.x;
+          pos_y= frame_chain.y;
         } in
-        god_flatten ~pos_ratio subgod.god)
+        let pos_ratio_transform= {
+          pos= pos_chain;
+          ratio= ratio_chain;
+          transform;
+        } in
+        god_flatten ~pos_ratio_transform subgod.god)
   in
   List.concat elements
 
@@ -911,6 +997,7 @@ let svg_of_stroke ~stroke_glyph (stroke:stroke)=
     svg.viewBox.height
   and dx= stroke.frame.x
   and dy= stroke.frame.y in
+  (* TODO, we need to send stroke.transform field to Smaji_glyph_path.Svg.Adjust module to perform transforming. *)
   svg
     |> Smaji_glyph_path.Svg.Adjust.scale ~x ~y
     |> Smaji_glyph_path.Svg.Adjust.translate ~dx ~dy
@@ -950,7 +1037,7 @@ let svg_of_god ~stroke_glyph god=
   Smaji_glyph_path.Svg.Adjust.viewBox_fitFrame_reset svg
 
 let outline_svg_of_god ~stroke_glyph god=
-  let size= calc_size god in
+  let size= frame_size (god_frame god) in
   let rec svg_of_god ?(indent=0) god=
     let indent_str0= String.make indent ' '
     and indent_str1= String.make (indent+2) ' '
@@ -991,7 +1078,7 @@ let outline_svg_of_god ~stroke_glyph god=
             paths
             indent_str1
         | SubGod subgod->
-          let size= calc_size subgod.god in
+          let size= frame_size (god_frame subgod.god) in
           let dx= subgod.frame.x
           and dy= subgod.frame.y
           and rx= subgod.frame.width /. size.width
@@ -1057,7 +1144,7 @@ let outline_svg_of_god ~stroke_glyph god=
   | _-> failwith (sprintf "outline_svg_of_god %d %d" god.version_major god.version_minor)
 
 let animate_svg_of_god ~stroke_animate god=
-  let size= calc_size god in
+  let size= frame_size (god_frame god) in
   let rec animate_svg_of_god ?(id=0) ?(time=0.) ?(indent=0) god=
     let indent_str0= String.make indent ' '
     and indent_str1= String.make (indent+2) ' ' in
@@ -1094,7 +1181,7 @@ let animate_svg_of_god ~stroke_animate god=
             godAnimate_str
             indent_str1))
         | SubGod subgod->
-          let size= calc_size subgod.god in
+          let size= frame_size (god_frame subgod.god) in
           let dx= subgod.frame.x
           and dy= subgod.frame.y
           and rx= subgod.frame.width /. size.width
@@ -1156,7 +1243,7 @@ type glif_of_god=
   | Wrapped of { wrap: Glif.t; content: Glif.t }
 
 let outline_glif_of_god ~stroke_glyph god=
-  let size= calc_size god in
+  let size= frame_size (god_frame god) in
   let glif_of_god ?(wrapped=true) god=
     let name=
       let base= string_of_code_point god.code_point in
@@ -1189,7 +1276,7 @@ let outline_glif_of_god ~stroke_glyph god=
             identifier= None;
           }
       | SubGod subgod->
-        let size= calc_size subgod.god in
+        let size= frame_size (god_frame subgod.god) in
         let dx= subgod.frame.x
         and dy= subgod.frame.y
         and rx= subgod.frame.width /. size.width
@@ -1217,7 +1304,7 @@ let outline_glif_of_god ~stroke_glyph god=
     }
   in
   let transfrom_wrap god=
-    let size= calc_size god in
+    let size= frame_size (god_frame god) in
     let code_point= god.code_point in
     let wrap=
       let xScale, yScale, xOffset, yOffset=
