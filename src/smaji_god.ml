@@ -1034,7 +1034,7 @@ let svg_of_god ~stroke_glyph god=
     |> List.concat
   in
   let svg= Smaji_glyph_path.Svg.{ viewBox; paths } in
-  Smaji_glyph_path.Svg.Adjust.viewBox_fitFrame_reset svg
+  Smaji_glyph_path.Svg.Adjust.viewBox_fit_frame_reset svg
 
 let outline_svg_of_god ~stroke_glyph god=
   let size= frame_size (god_frame god) in

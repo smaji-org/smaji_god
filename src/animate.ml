@@ -110,7 +110,7 @@ module Adjust = struct
 
   let fit_frame t=
     let svg= t.svg in
-    match Path.get_frame_paths svg.paths with
+    match Path.paths_frame svg.paths with
     | None-> t
     | Some frame->
       let height= frame.height
