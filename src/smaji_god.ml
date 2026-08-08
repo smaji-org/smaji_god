@@ -770,7 +770,7 @@ and string_of_element ?(indent=0) elem=
     and frame= string_of_frame god.frame in
     sprintf "%s{ frame: %s; god:\n%s\n%s}" indent_str frame god indent_str
 
-let rec load_file ~dir ?(filename="default.xml") code_point=
+let rec load_file ~dir ?(filename="default.god") code_point=
   let ( / ) = Filename.concat in
   let god_raw= Raw.load_file (dir / path_of_code_point code_point / filename) in
   let elements= god_raw.elements |> List.map (function
@@ -787,7 +787,7 @@ let rec load_file ~dir ?(filename="default.xml") code_point=
     comment= god_raw.comment;
   }
 
-let of_string ~dir ?(filename="default.xml") string=
+let of_string ~dir ?(filename="default.god") string=
   let god_raw= Raw.of_string string in
   let elements= god_raw.elements |> List.map (function
     | Raw.Ref ref-> SubGod { god= (load_file ~dir ~filename ref.code_point); frame= ref.frame }
