@@ -1,8 +1,8 @@
 = Glyph Outline Description
 
-Smaji GOD is a markup language, an XML schema, used to record glyph accurately.
+Smaji GOD is a markup language, an XML schema, designed to record glyph easily. It provides a precise, composable way to represent glyph strokes.
 
-The Glyph Outline Description (GOD) represents a single glyph. Even subtly different strokes are differentiated in GOD (63 types), and the position and size information is attributed. The strokes, and existing GOD data are composited to form new GOD data. Accurate, precise, composable, that's GOD.
+The Glyph Outline Description (GOD) represents a single glyph. It differentiates between 63 types of strokes, and the position and size information is attributed. The design allows strokes and existing GOD data to be composited to form new GOD data. Precise, composable, that's GOD.
 
 The data structure of GOD:
 
@@ -17,7 +17,9 @@ god
 
 == Formal definition
 
-http://cjkv.smaji.org/xml/1.0/xsd/god.xsd
+The formal XML schema for GOD can be found at:
+
+https://cjkv.smaji.org/xml/1.0/xsd/god.xsd
 
 == Specification
 
@@ -30,7 +32,7 @@ http://cjkv.smaji.org/xml/1.0/xsd/god.xsd
 |Name |Description |Required
 
 |version
-|the format version, currently "1.0"
+|The format version, currently "1.0"
 |Yes
 
 |===
@@ -41,7 +43,7 @@ http://cjkv.smaji.org/xml/1.0/xsd/god.xsd
 |Name |Description | Required
 
 |glyph
-|may occur at most once
+|May occur at most once
 |Yes
 
 |===
@@ -55,11 +57,11 @@ http://cjkv.smaji.org/xml/1.0/xsd/god.xsd
 |Name |Description |Required
 
 |unicode
-|unicode code point, a hexadecimal number representing a unicode scalar, and after the number, a value called variation selector can be appended separating by a comma
+|Unicode code point, a hexadecimal number. A variation selector can be appended, separated by a comma.
 |Yes
 
 |transform
-|can be "mirror_horizontal", "mirror_vertical" or "rotate180", the entire glyph is transformed according to the value
+|Can be "mirror_horizontal", "mirror_vertical" or "rotate180". The entire glyph is transformed according to this value.
 |No
 
 |===
@@ -70,15 +72,15 @@ http://cjkv.smaji.org/xml/1.0/xsd/god.xsd
 |Name |Description | Required
 
 |stroke
-|may occur any number of times
+|May occur any number of times
 |No
 
 |ref
-|may occur any number of times
+|May occur any number of times
 |No
 
 |character
-|may occur any number of times
+|May occur any number of times
 |No
 
 |===
@@ -91,23 +93,23 @@ http://cjkv.smaji.org/xml/1.0/xsd/god.xsd
 |Name |Description |Required
 
 |type
-|one of 63 types of stroke, see the xref:stroke_list[table] below
+|One of 63 types of stroke, see the xref:stroke_list[table] below
 |Yes
 
 |x
-|the 'x' coordinate
+|The 'x' coordinate
 |Yes
 
 |y
-|the 'y' coordinate
+|The 'y' coordinate
 |Yes
 
 |weight
-|the 'weight' of the stroke
+|The 'weight' of the stroke
 |Yes
 
 |height
-|the 'height' of the stroke
+|The 'height' of the stroke
 |Yes
 
 |===
@@ -195,23 +197,23 @@ tod   | Throw – Oval – Dot
 |Name |Description |Required
 
 |unicode
-|unicode code point, a hexadecimal number representing a unicode scalar, and after the number, a value called variation selector can be appended separating by a comma
+|Unicode code point, a hexadecimal number representing a unicode scalar. A variation selector can be appended, separated by a comma.
 |Yes
 
 |x
-|the 'x' coordinate
+|The 'x' coordinate
 |Yes
 
 |y
-|the 'y' coordinate
+|The 'y' coordinate
 |Yes
 
 |weight
-|the 'weight' of the referenced glyph
+|The 'weight' of the referenced glyph
 |Yes
 
 |height
-|the 'height' of the referenced glyph
+|The 'height' of the referenced glyph
 |Yes
 
 |===
@@ -225,23 +227,23 @@ tod   | Throw – Oval – Dot
 |Name |Description |Required
 
 |utf8
-|utf8 encoded character
+|UTF-8 encoded character
 |Yes
 
 |x
-|the 'x' coordinate
+|The 'x' coordinate
 |Yes
 
 |y
-|the 'y' coordinate
+|The 'y' coordinate
 |Yes
 
 |weight
-|the 'weight' of the referenced glyph
+|The 'weight' of the referenced glyph
 |Yes
 
 |height
-|the 'height' of the referenced glyph
+|The 'height' of the referenced glyph
 |Yes
 
 |===
@@ -263,11 +265,11 @@ tod   | Throw – Oval – Dot
   </glyph>
 </god>
 
-This GOD describes a glyph consisting of strokes purely, a throw (㇒) and a press (㇏).
+This GOD describes a glyph consisting of strokes purely: a throw (㇒) and a press (㇏).
 
-This is kind of a bureaucratic version. Though the specified schema location helps the text editor find the formal definition so that it can perform editing completion and hinting for users.
+The specified schema location helps the text editor find the formal definition for editing completion and hinting.
 
-Here is a simplified version:
+Simplified version:
 
 [source,xml]
 <god version="1.0">
@@ -277,7 +279,7 @@ Here is a simplified version:
   </glyph>
 </god>
 
-The order of the children inside glyph element is that of the strokes of the glyph.
+The order of the children inside glyph element corresponds to the stroke order of the glyph.
 
 .Click here to view the generated glyph
 [%collapsible]
@@ -303,9 +305,9 @@ In sample 1, a glyph of character "八" is purely composed by strokes. In this s
 image::https://github.com/kandu/static/raw/master/smaji/cjkv/god/4e15,0.outline.svg[]
 ====
 
-This GOD describes a glyph consisting of a glyph which is of unicode 4e0d, i.e. "不" above and a stroke "Horizontal" below. The result is a glyph of "丕".
+This GOD describes a glyph consisting of a glyph of unicode 4e0d, i.e. "不" above and a "Horizontal" stroke below. The result is a glyph of "丕".
 
-Suppose that there exists a variation of character "不" and the unicode of the it is "4e0d,e0100", then the GOD would be:
+If there exists a variation of character "不" with unicode "4e0d,e0100", the GOD would be:
 
 [source,xml]
 <god version="1.0">
@@ -315,11 +317,11 @@ Suppose that there exists a variation of character "不" and the unicode of the 
   </glyph>
 </god>
 
-As seen above, the variation selector is appended to the original unicode value separated by a comma.
+The variation selector is appended to the original unicode value separated by a comma.
 
 === Sample 3
 
-In sample 2, a glyph is composed by an exiting GOD and a stroke. The exiting GOD is referenced by unicode code point, which is of unambiguous. Even so, "不" is such a common and unambiguous character that it can be typed in directly, as follows:
+In sample 2, a glyph is composed by an exiting GOD and a stroke. The exiting GOD is referenced by un unambiguous unicode code point. However, "不" is such a common and unambiguous character that it can be typed directly:
 
 [source,xml]
 <god version="1.0">
@@ -344,11 +346,11 @@ In sample 2, a glyph is composed by an exiting GOD and a stroke. The exiting GOD
 image::https://github.com/kandu/static/raw/master/smaji/cjkv/god/2010f,0.outline.svg[]
 ====
 
-This sample is an illustration that shows us how to transform the glyph. "transform" is an optional attribute that applies transformation to the entire glyph. Available transformations include "mirror_horizontal", "mirror_vertical" and "rotate180".
+This sample illustrates how to transform the glyph. The optional "transform" attribute applies transformation to the entire glyph. Available transformations include "mirror_horizontal", "mirror_vertical" and "rotate180".
 
 == Related projects
 
 https://github.com/smaji-org/smaji_dyn_glyph[smaji_dyn_glyph], a processor for parsing, generating and converting glyph files.
 
-https://github.com/smaji-org/smaji_glyph_outline[smaji_glyph_outline], a library to read, write and translate glyph outline files.
+https://github.com/smaji-org/smaji_glyph_path[smaji_glyph_path], a library to read, write and translate glyph path files.
 
