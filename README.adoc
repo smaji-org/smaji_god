@@ -4,7 +4,22 @@ Smaji GOD is a markup language, an XML schema, designed to record glyph easily. 
 
 The Glyph Outline Description (GOD) represents a single glyph. It currently includes and distinguishes between 63 types of Chinese strokes, and the position and size information is attributed. The design allows strokes and existing GOD data to be composited to form new GOD data. Precise, composable, that's GOD.
 
-The data structure of GOD:
+== How it Works
+
+A `god` file is primarily composed of two types of elements:
+
+* Stroke component descriptions
+* References to existing `god` files
+
+Therefore, the organization of a god file involves arranging these two types of elements and defining their position, width and height to compose a glyph.
+
+== Output Formats
+
+* SVG font contour files
+* SVG writing animation files
+* Glif font contour files
+
+== Data structure of GOD:
 
 [source,]
 ----
@@ -13,6 +28,7 @@ god
         stroke
         reference
         character
+    comment
 ----
 
 == Formal definition
@@ -104,8 +120,8 @@ https://cjkv.smaji.org/xml/1.0/xsd/god.xsd
 |The 'y' coordinate
 |Yes
 
-|weight
-|The 'weight' of the stroke
+|width
+|The 'width' of the stroke
 |Yes
 
 |height
@@ -208,8 +224,8 @@ tod   | Throw – Oval – Dot
 |The 'y' coordinate
 |Yes
 
-|weight
-|The 'weight' of the referenced glyph
+|width
+|The 'width' of the referenced glyph
 |Yes
 
 |height
@@ -238,8 +254,8 @@ tod   | Throw – Oval – Dot
 |The 'y' coordinate
 |Yes
 
-|weight
-|The 'weight' of the referenced glyph
+|width
+|The 'width' of the referenced glyph
 |Yes
 
 |height
@@ -348,6 +364,18 @@ image::https://github.com/kandu/static/raw/master/smaji/cjkv/god/2010f,0.outline
 
 This sample illustrates how to transform the glyph. The optional "transform" attribute applies transformation to the entire glyph. Available transformations include "mirror_horizontal", "mirror_vertical" and "rotate180".
 
+=== Sample 5
+
+The code is the same as Sample 3, but this time, an animation svg is generated.
+
+.Click here to view the generated glyph
+[%collapsible]
+====
+image::https://github.com/kandu/static/raw/master/smaji/cjkv/god/4e15,0.animation.svg[]
+====
+
+If this image is still, try to reload the image or open this image in a new tab or window to restart the animation.
+
 == Pros & Cons
 
 === Pros
@@ -363,11 +391,11 @@ This sample illustrates how to transform the glyph. The optional "transform" att
 
 In summary, Smaji GOD is better suited for phonetic scripts and simple combinations of ideographs. It may exhibit compression distortion when dealing with complex upper-middle-lower or left-middle-right ideographic structures.
 
-=== Related Projects
+== Related Projects
 
 https://github.com/smaji-org/smaji_glyph_path[Smaji Glyph Path] A library to read, write and translate glyph path files.
 
 https://github.com/smaji-org/smaji_dyn_glyph[Smaji Dyn Glyph] A processor for parsing, generating and converting glyph files by leveraging `smaji_god` and `smaji_gsd`.
 
-https://github.com/smaji-org/smaji_god[Smaji Stroke Description] An enhanced version that addresses the aforementioned drawbacks. It generates glyph files by procedurally creating each stroke, removing the need for pre-made files and eliminating compression issues when combining strokes with high aspect ratios.
+https://github.com/smaji-org/smaji_gsd[Smaji Stroke Description] An enhanced version that addresses the aforementioned drawbacks. It generates glyph files by procedurally creating each stroke, removing the need for pre-made files and eliminating compression issues when combining strokes with high aspect ratios.
 
