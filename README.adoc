@@ -2,7 +2,7 @@
 
 Smaji GOD is a markup language, an XML schema, designed to record glyph easily. It provides a precise, composable way to represent glyph strokes.
 
-The Glyph Outline Description (GOD) represents a single glyph. It differentiates between 63 types of strokes, and the position and size information is attributed. The design allows strokes and existing GOD data to be composited to form new GOD data. Precise, composable, that's GOD.
+The Glyph Outline Description (GOD) represents a single glyph. It currently includes and distinguishes between 63 types of Chinese strokes, and the position and size information is attributed. The design allows strokes and existing GOD data to be composited to form new GOD data. Precise, composable, that's GOD.
 
 The data structure of GOD:
 
@@ -348,9 +348,26 @@ image::https://github.com/kandu/static/raw/master/smaji/cjkv/god/2010f,0.outline
 
 This sample illustrates how to transform the glyph. The optional "transform" attribute applies transformation to the entire glyph. Available transformations include "mirror_horizontal", "mirror_vertical" and "rotate180".
 
-== Related projects
+== Pros & Cons
 
-https://github.com/smaji-org/smaji_dyn_glyph[smaji_dyn_glyph], a processor for parsing, generating and converting glyph files.
+=== Pros
 
-https://github.com/smaji-org/smaji_glyph_path[smaji_glyph_path], a library to read, write and translate glyph path files.
+* As easy as assembling blocks.
+* Can generate SVG animations to showcase the writing process.
+
+
+=== Cons
+
+* Although the library comes with a set of pre-made files, customizing the output glyph style requires providing pre-made path and animation files for the corresponding strokes.
+* Since it uses pre-made components, combining them into glyphs with extreme aspect ratios can lead to visual inconsistency. For example, in a character with an upper-middle-lower structure like "草" (composed of "艹", "日", and "十"), the horizontal strokes may appear compressed while the vertical strokes remain unchanged.
+
+In summary, Smaji GOD is better suited for phonetic scripts and simple combinations of ideographs. It may exhibit compression distortion when dealing with complex upper-middle-lower or left-middle-right ideographic structures.
+
+=== Related Projects
+
+https://github.com/smaji-org/smaji_glyph_path[Smaji Glyph Path] A library to read, write and translate glyph path files.
+
+https://github.com/smaji-org/smaji_dyn_glyph[Smaji Dyn Glyph] A processor for parsing, generating and converting glyph files by leveraging `smaji_god` and `smaji_gsd`.
+
+https://github.com/smaji-org/smaji_god[Smaji Stroke Description] An enhanced version that addresses the aforementioned drawbacks. It generates glyph files by procedurally creating each stroke, removing the need for pre-made files and eliminating compression issues when combining strokes with high aspect ratios.
 
